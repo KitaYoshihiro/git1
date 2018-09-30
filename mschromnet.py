@@ -22,9 +22,10 @@ def MSChromNet(input_shape):
     # Block 1
     input_tensor = Input(shape=input_shape)
     net['input'] = input_tensor
+    net['reshape1'] = Reshape((input_shape[0],1))(net['input'])
     net['conv1_1'] = Conv1D(4, 3, activation='relu',
                                   padding='same',
-                                  name='conv1_1')(net['input'])
+                                  name='conv1_1')(net['reshape1'])
     net['conv1_2'] = Conv1D(4, 3, activation='relu',
                                   padding='same',
                                   name='conv1_2')(net['conv1_1'])
@@ -191,16 +192,15 @@ def MSChromNet(input_shape):
     net['fc15_1'] = Flatten(name='fc15_1')(net['conv14_3'])
     net['fc15_2'] = Dense(input_shape[0], activation='relu',
                                     name='fc15_2')(net['fc15_1'])
-    net['fc15_3'] = Dense(input_shape[0], activation='relu',
+    net['fc15_3'] = Dense(input_shape[0], activation='sigmoid',
                                     name='fc15_3')(net['fc15_2'])
+    
     # Prediction
     net['predictions'] = net['fc15_3']    
     model = Model(net['input'], net['predictions'])
     return model
 
 if __name__ == '__main__':
-    input_shape = (1024, 1)
-    print('input shape[0]', input_shape[0])
-    print('input shape[1]', input_shape[1])
+    input_shape = (1024, )
     mymodel = MSChromNet(input_shape)
     print(mymodel.summary())
