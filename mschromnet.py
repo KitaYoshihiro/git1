@@ -170,23 +170,32 @@ def MSChromNet(input_shape):
                                     padding='same',
                                     name='conv14_3')(net['conv14_2'])
     net['upsample14'] = UpSampling1D(name='upsample14')(net['conv14_3'])
-    # Block 15
-    net['conv15_1'] = Conv1D(4, 3, activation='relu',
-                                    padding='same',
-                                    name='conv15_1')(net['upsample14'])
-    net['conv15_2'] = Conv1D(4, 3, activation='relu',
-                                    padding='same',
-                                    name='conv15_2')(net['conv15_1'])
-    net['conv15_3'] = Conv1D(1, 3, activation='relu',
-                                    padding='same',
-                                    name='conv15_3')(net['conv15_2'])
+    # # Block 15
+    # net['conv15_1'] = Conv1D(4, 3, activation='relu',
+    #                                 padding='same',
+    #                                 name='conv15_1')(net['upsample14'])
+    # net['conv15_2'] = Conv1D(4, 3, activation='relu',
+    #                                 padding='same',
+    #                                 name='conv15_2')(net['conv15_1'])
+    # net['conv15_3'] = Conv1D(1, 3, activation='relu',
+    #                                 padding='same',
+    #                                 name='conv15_3')(net['conv15_2'])
 
+    # Dence 15
+    net['fc15_1'] = Dense(input_shape[0], activation='relu',
+                                    name='fc15_1')(net['upsample14'])
+    net['fc15_2'] = Dense(input_shape[0], activation='relu',
+                                    name='fc15_2')(net['fc15_1'])
+    net['fc15_3'] = Dense(input_shape[0], activation='relu',
+                                    name='fc15_3')(net['fc15_2'])
     # Prediction
-    net['predictions'] = net['conv15_3']    
+    net['predictions'] = net['fc15_3']    
     model = Model(net['input'], net['predictions'])
     return model
 
 if __name__ == '__main__':
     input_shape = (1024, 1)
+    print('input shape[0]', input_shape[0])
+    print('input shape[1]', input_shape[1])
     mymodel = MSChromNet(input_shape)
     print(mymodel.summary())
