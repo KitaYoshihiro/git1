@@ -59,6 +59,8 @@ def MSChromNet(input_shape):
                                    padding='same',
                                    name='conv4_3')(net['conv4_2'])
     net['pool4'] = MaxPooling1D(name='pool4')(net['conv4_3'])
+    net['upsample4'] = UpSampling1D()(net['conv4_3'])
+
     # Block 5
     net['conv5_1'] = Conv1D(64, 3, activation='relu',
                                    padding='same',
@@ -92,6 +94,7 @@ def MSChromNet(input_shape):
                                     padding='same',
                                     name='conv7_3')(net['conv7_2'])
     net['pool7'] = MaxPooling1D(name='pool7')(net['conv7_3'])
+
     # Block 8
     net['conv8_1'] = Conv1D(512, 3, activation='relu',
                                     padding='same',
@@ -149,9 +152,12 @@ def MSChromNet(input_shape):
                                     name='conv12_3')(net['conv12_2'])
     net['upsample12'] = UpSampling1D(name='upsample12')(net['conv12_3'])
     # Block 13
+    # net['conv13_1'] = Conv1D(16, 3, activation='relu',
+    #                                 padding='same',
+    #                                 name='conv13_1')(net['upsample12'])
     net['conv13_1'] = Conv1D(16, 3, activation='relu',
                                     padding='same',
-                                    name='conv13_1')(net['upsample12'])
+                                    name='conv13_1')(net['upsample4'])
     net['conv13_2'] = Conv1D(16, 3, activation='relu',
                                     padding='same',
                                     name='conv13_2')(net['conv13_1'])
@@ -182,8 +188,7 @@ def MSChromNet(input_shape):
     #                                 name='conv15_3')(net['conv15_2'])
 
     # Dence 15
-    net['fc15_1'] = Dense(input_shape[0], activation='relu',
-                                    name='fc15_1')(net['upsample14'])
+    net['fc15_1'] = Flatten(name='fc15_1')(net['conv14_3'])
     net['fc15_2'] = Dense(input_shape[0], activation='relu',
                                     name='fc15_2')(net['fc15_1'])
     net['fc15_3'] = Dense(input_shape[0], activation='relu',
