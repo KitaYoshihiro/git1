@@ -187,6 +187,7 @@ def MSChromNet(input_shape):
     net['conv15_3'] = Conv1D(1, 3, activation='sigmoid',
                                     padding='same',
                                     name='conv15_3')(net['conv15_2'])
+    net['flatten15_4'] = Flatten()(net['conv15_3'])
 
     # # Dence 15
     # net['fc15_1'] = Flatten(name='fc15_1')(net['conv14_3'])
@@ -196,7 +197,7 @@ def MSChromNet(input_shape):
     #                                 name='fc15_3')(net['fc15_2'])
     
     # Prediction
-    net['predictions'] = net['conv15_3']    
+    net['predictions'] = net['flatten15_4']    
     model = Model(net['input'], net['predictions'])
     return model
 
