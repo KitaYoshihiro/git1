@@ -59,7 +59,7 @@ def MSChromNet(input_shape):
     net['conv4_3'] = Conv1D(32, 3, activation='relu',
                                    padding='same',
                                    name='conv4_3')(net['conv4_2'])
-    # net['pool4'] = MaxPooling1D(name='pool4')(net['conv4_3'])
+    net['pool4'] = MaxPooling1D(name='pool4')(net['conv4_3'])
     net['upsample4'] = UpSampling1D()(net['conv4_3'])
 
     # Block 5
