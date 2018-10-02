@@ -38,6 +38,8 @@ def MSChromNet(input_shape):
                                   padding='same',
                                   name='conv2_2')(net['conv2_1'])
     net['pool2'] = MaxPooling1D(name='pool2')(net['conv2_2'])
+    net['upsample2'] = UpSampling1D()(net['conv2_2'])
+
     # Block 3
     net['conv3_1'] = Conv1D(16, 3, activation='relu',
                                    padding='same',
@@ -180,7 +182,10 @@ def MSChromNet(input_shape):
     # Block 15
     net['conv15_1'] = Conv1D(4, 3, activation='relu',
                                     padding='same',
-                                    name='conv15_1')(net['upsample14'])
+                                    name='conv15_1')(net['upsample2'])
+    # net['conv15_1'] = Conv1D(4, 3, activation='relu',
+    #                                 padding='same',
+    #                                 name='conv15_1')(net['upsample14'])
     net['conv15_2'] = Conv1D(4, 3, activation='relu',
                                     padding='same',
                                     name='conv15_2')(net['conv15_1'])
