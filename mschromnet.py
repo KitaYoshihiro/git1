@@ -10,6 +10,8 @@ from keras.layers import GlobalAveragePooling1D
 from keras.layers import Input
 from keras.layers import MaxPooling1D
 from keras.layers import UpSampling1D
+from keras.layers import BatchNormalization
+from keras.layers import Activation
 from keras.layers import merge
 from keras.layers import Reshape
 from keras.layers import ZeroPadding1D
@@ -23,20 +25,24 @@ def MSChromNet(input_shape):
     input_tensor = Input(shape=input_shape)
     net['input'] = input_tensor
     net['reshape1'] = Reshape((input_shape[0],1))(net['input'])
-    net['conv1_1'] = Conv1D(4, 3, activation='relu',
+    net['conv1_1'] = Conv1D(4, 3,
                                   padding='same',
                                   name='conv1_1')(net['reshape1'])
+    net['norm1_1'] = BatchNormalization(name='norm1_1')(net['conv1_1'])
+    net['relu1_1'] = Activation(activation='relu', name='relu1_1')(net['norm1_1'])
     net['conv1_2'] = Conv1D(4, 3, activation='relu',
                                   padding='same',
-                                  name='conv1_2')(net['conv1_1'])
+                                  name='conv1_2')(net['relu1_1'])
     net['pool1'] = MaxPooling1D(name='pool1')(net['conv1_2'])
     # Block 2
-    net['conv2_1'] = Conv1D(8, 3, activation='relu',
+    net['conv2_1'] = Conv1D(8, 3,
                                   padding='same',
                                   name='conv2_1')(net['pool1'])
+    net['norm2_1'] = BatchNormalization(name='norm2_1')(net['conv2_1'])
+    net['relu2_1'] = Activation(activation='relu', name='relu2_1')(net['norm2_1'])    
     net['conv2_2'] = Conv1D(8, 3, activation='relu',
                                   padding='same',
-                                  name='conv2_2')(net['conv2_1'])
+                                  name='conv2_2')(net['relu2_1'])
     net['pool2'] = MaxPooling1D(name='pool2')(net['conv2_2'])
     net['upsample2'] = UpSampling1D()(net['conv2_2'])
 
