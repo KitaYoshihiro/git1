@@ -212,7 +212,7 @@ def MSChromNet(input_shape):
     net['norm15_2'] = BatchNormalization(name='norm15_2')(net['conv15_2'])
     net['relu15_2'] = Activation(activation='relu', name='relu15_2')(net['norm15_2'])
 
-    net['conv15_3'] = Conv1D(16, 3,
+    net['conv15_3'] = Conv1D(1, 3,
                                     padding='same',
                                     name='conv15_3')(net['relu15_2'])
     net['norm15_3'] = BatchNormalization(name='norm15_3')(net['conv15_3'])
