@@ -25,26 +25,38 @@ def MSChromNet(input_shape):
     input_tensor = Input(shape=input_shape)
     net['input'] = input_tensor
     net['reshape1'] = Reshape((input_shape[0],1))(net['input'])
+
     net['conv1_1'] = Conv1D(4, 3,
                                   padding='same',
                                   name='conv1_1')(net['reshape1'])
     net['norm1_1'] = BatchNormalization(name='norm1_1')(net['conv1_1'])
     net['relu1_1'] = Activation(activation='relu', name='relu1_1')(net['norm1_1'])
-    net['conv1_2'] = Conv1D(4, 3, activation='relu',
+
+    net['conv1_2'] = Conv1D(4, 3,
                                   padding='same',
                                   name='conv1_2')(net['relu1_1'])
-    net['pool1'] = MaxPooling1D(name='pool1')(net['conv1_2'])
-    # Block 2
+    net['norm1_2'] = BatchNormalization(name='norm1_2')(net['conv1_2'])
+    net['relu1_2'] = Activation(activation='relu', name='relu1_2')(net['norm1_2'])
+
+    # net['conv1_2'] = Conv1D(4, 3, activation='relu',
+    #                               padding='same',
+    #                               name='conv1_2')(net['relu1_1'])
+    net['pool1'] = MaxPooling1D(name='pool1')(net['relu1_2'])
+    # Block 2    
     net['conv2_1'] = Conv1D(8, 3,
                                   padding='same',
                                   name='conv2_1')(net['pool1'])
     net['norm2_1'] = BatchNormalization(name='norm2_1')(net['conv2_1'])
-    net['relu2_1'] = Activation(activation='relu', name='relu2_1')(net['norm2_1'])    
-    net['conv2_2'] = Conv1D(8, 3, activation='relu',
+    net['relu2_1'] = Activation(activation='relu', name='relu2_1')(net['norm2_1'])
+
+    net['conv2_2'] = Conv1D(8, 3,
                                   padding='same',
                                   name='conv2_2')(net['relu2_1'])
-    net['pool2'] = MaxPooling1D(name='pool2')(net['conv2_2'])
-    net['upsample2'] = UpSampling1D()(net['conv2_2'])
+    net['norm2_2'] = BatchNormalization(name='norm2_2')(net['conv2_2'])
+    net['relu2_2'] = Activation(activation='relu', name='relu2_2')(net['norm2_2'])
+
+    net['pool2'] = MaxPooling1D(name='pool2')(net['relu2_2'])
+    net['upsample2'] = UpSampling1D()(net['relu2_2'])
 
     # Block 3
     net['conv3_1'] = Conv1D(16, 3, activation='relu',
@@ -186,19 +198,27 @@ def MSChromNet(input_shape):
                                     name='conv14_3')(net['conv14_2'])
     net['upsample14'] = UpSampling1D(name='upsample14')(net['conv14_3'])
     # Block 15
-    net['conv15_1'] = Conv1D(4, 3, activation='relu',
+    net['conv15_1'] = Conv1D(4, 3,
                                     padding='same',
                                     name='conv15_1')(net['upsample2'])
+    net['norm15_1'] = BatchNormalization(name='norm15_1')(net['conv15_1'])
+    net['relu15_1'] = Activation(activation='relu', name='relu15_1')(net['norm15_1'])                    
     # net['conv15_1'] = Conv1D(4, 3, activation='relu',
     #                                 padding='same',
     #                                 name='conv15_1')(net['upsample14'])
-    net['conv15_2'] = Conv1D(4, 3, activation='relu',
+    net['conv15_2'] = Conv1D(4, 3,
                                     padding='same',
-                                    name='conv15_2')(net['conv15_1'])
-    net['conv15_3'] = Conv1D(1, 3, activation='sigmoid',
+                                    name='conv15_2')(net['relu15_1'])
+    net['norm15_2'] = BatchNormalization(name='norm15_2')(net['conv15_2'])
+    net['relu15_2'] = Activation(activation='relu', name='relu15_2')(net['norm15_2'])
+
+    net['conv15_3'] = Conv1D(1, 3,
                                     padding='same',
-                                    name='conv15_3')(net['conv15_2'])
-    net['flatten15_4'] = Flatten()(net['conv15_3'])
+                                    name='conv15_3')(net['relu15_2'])
+    net['norm15_3'] = BatchNormalization(name='norm15_3')(net['conv15_3'])
+    net['relu15_3'] = Activation(activation='sigmoid', name='relu15_3')(net['norm15_3'])
+
+    net['flatten15_4'] = Flatten()(net['relu15_3'])
 
     # # Dence 15
     # net['fc15_1'] = Flatten(name='fc15_1')(net['conv14_3'])
