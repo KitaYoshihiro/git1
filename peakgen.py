@@ -10,7 +10,6 @@ import keras
 import tensorflow as tf
 from scipy.stats import norm, skewnorm
 
-
 # In[2]:
 
 
