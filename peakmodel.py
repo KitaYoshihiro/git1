@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import matplotlib.pyplot as plt
 from scipy.stats import norm, skewnorm
 
 class PeakModel:    
@@ -64,4 +65,10 @@ class PeakModel:
         return samplepeak, refpeak
 
 if __name__ == '__main__':
-    pass
+    DATA, REFDATA = PeakModel.chrom(200)
+    DATA, FACTOR = PeakModel.normalize(DATA)
+    REFDATA, _ = PeakModel.normalize(REFDATA, FACTOR)
+    plt.plot(REFDATA)
+    plt.plot(DATA)
+    plt.show()
+    
