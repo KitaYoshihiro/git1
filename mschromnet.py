@@ -17,6 +17,34 @@ from keras.layers import Reshape
 from keras.layers import ZeroPadding1D
 from keras.models import Model
 
+def Conv1DBNRelu(input, net, basename, cn):
+    """CNN1D
+    """
+    net['conv' + basename] = Conv1D(cn, 3, padding='same', name='conv' + basename)(input)
+    net['norm' + basename] = BatchNormalization(name='norm' + basename)(net['conv' + basename])
+    net['relu' + basename] = Activation(activation='relu', name='relu' + basename)(net['norm' + basename])
+    return net['relu' + basename]
+
+def Conv1DBNSigmoid(input, net, basename, cn):
+    """CNN1D
+    """
+    net['conv' + basename] = Conv1D(cn, 3, padding='same', name='conv' + basename)(input)
+    net['norm' + basename] = BatchNormalization(name='norm' + basename)(net['conv' + basename])
+    net['sigmoid' + basename] = Activation(activation='sigmoid', name='sigmoid' + basename)(net['norm' + basename])
+    return net['sigmoid' + basename]
+
+def MaxPool1D(input, net, basename):
+    """MaxPool1D
+    """
+    net['pool' + basename] = MaxPooling1D(name='pool' + basename)(input)
+    return net['pool' + basename]
+
+def Upsample1D(input, net, basename):
+    """Upsample1D
+    """
+    net['upsample' + basename] =  UpSampling1D(name='upsample' + basename)(input)
+    return net['upsample' + basename]    
+
 def MSChromNet(input_shape):
     """SSD-like 1D architecture
     """
@@ -26,199 +54,79 @@ def MSChromNet(input_shape):
     net['input'] = input_tensor
     net['reshape1'] = Reshape((input_shape[0],1))(net['input'])
 
-    net['conv1_1'] = Conv1D(16, 3,
-                                  padding='same',
-                                  name='conv1_1')(net['reshape1'])
-    net['norm1_1'] = BatchNormalization(name='norm1_1')(net['conv1_1'])
-    net['relu1_1'] = Activation(activation='relu', name='relu1_1')(net['norm1_1'])
+    x = Conv1DBNRelu(net['reshape1'], net, '1_1', 16)
+    x = Conv1DBNRelu(x, net, '1_2', 16)
+    x = MaxPool1D(x, net, '1')
 
-    net['conv1_2'] = Conv1D(16, 3,
-                                  padding='same',
-                                  name='conv1_2')(net['relu1_1'])
-    net['norm1_2'] = BatchNormalization(name='norm1_2')(net['conv1_2'])
-    net['relu1_2'] = Activation(activation='relu', name='relu1_2')(net['norm1_2'])
+    x = Conv1DBNRelu(x, net, '2_1', 32)
+    x = Conv1DBNRelu(x, net, '2_2', 32)
+    x = Conv1DBNRelu(x, net, '2_3', 32)
+    x = MaxPool1D(x, net, '2')
 
-    # net['conv1_2'] = Conv1D(4, 3, activation='relu',
-    #                               padding='same',
-    #                               name='conv1_2')(net['relu1_1'])
-    net['pool1'] = MaxPooling1D(name='pool1')(net['relu1_2'])
-    # Block 2    
-    net['conv2_1'] = Conv1D(32, 3,
-                                  padding='same',
-                                  name='conv2_1')(net['pool1'])
-    net['norm2_1'] = BatchNormalization(name='norm2_1')(net['conv2_1'])
-    net['relu2_1'] = Activation(activation='relu', name='relu2_1')(net['norm2_1'])
+    x = Conv1DBNRelu(x, net, '3_1', 64)
+    x = Conv1DBNRelu(x, net, '3_2', 64)
+    x = Conv1DBNRelu(x, net, '3_3', 64)
+    x = MaxPool1D(x, net, '3')
 
-    net['conv2_2'] = Conv1D(32, 3,
-                                  padding='same',
-                                  name='conv2_2')(net['relu2_1'])
-    net['norm2_2'] = BatchNormalization(name='norm2_2')(net['conv2_2'])
-    net['relu2_2'] = Activation(activation='relu', name='relu2_2')(net['norm2_2'])
+    x = Conv1DBNRelu(x, net, '4_1', 128)
+    x = Conv1DBNRelu(x, net, '4_2', 128)
+    x = Conv1DBNRelu(x, net, '4_3', 128)
+    x = MaxPool1D(x, net, '4')
 
-    net['pool2'] = MaxPooling1D(name='pool2')(net['relu2_2'])
-    net['upsample2'] = UpSampling1D()(net['relu2_2'])
+    x = Conv1DBNRelu(x, net, '5_1', 256)
+    x = Conv1DBNRelu(x, net, '5_2', 256)
+    x = Conv1DBNRelu(x, net, '5_3', 256)
+    x = MaxPool1D(x, net, '5')
 
-    # Block 3
-    net['conv3_1'] = Conv1D(64, 3, activation='relu',
-                                   padding='same',
-                                   name='conv3_1')(net['pool2'])
-    net['conv3_2'] = Conv1D(64, 3, activation='relu',
-                                   padding='same',
-                                   name='conv3_2')(net['conv3_1'])
-    net['conv3_3'] = Conv1D(64, 3, activation='relu',
-                                   padding='same',
-                                   name='conv3_3')(net['conv3_2'])
-    net['pool3'] = MaxPooling1D(name='pool3')(net['conv3_3'])
-    # Block 4
-    net['conv4_1'] = Conv1D(128, 3, activation='relu',
-                                   padding='same',
-                                   name='conv4_1')(net['pool3'])
-    net['conv4_2'] = Conv1D(128, 3, activation='relu',
-                                   padding='same',
-                                   name='conv4_2')(net['conv4_1'])
-    net['conv4_3'] = Conv1D(128, 3, activation='relu',
-                                   padding='same',
-                                   name='conv4_3')(net['conv4_2'])
-    net['pool4'] = MaxPooling1D(name='pool4')(net['conv4_3'])
-    net['upsample4'] = UpSampling1D()(net['conv4_3'])
+    x = Conv1DBNRelu(x, net, '6_1', 512)
+    x = Conv1DBNRelu(x, net, '6_2', 512)
+    x = Conv1DBNRelu(x, net, '6_3', 512)
+    x = MaxPool1D(x, net, '6')
 
-    # Block 5
-    net['conv5_1'] = Conv1D(256, 3, activation='relu',
-                                   padding='same',
-                                   name='conv5_1')(net['pool4'])
-    net['conv5_2'] = Conv1D(256, 3, activation='relu',
-                                   padding='same',
-                                   name='conv5_2')(net['conv5_1'])
-    net['conv5_3'] = Conv1D(256, 3, activation='relu',
-                                   padding='same',
-                                   name='conv5_3')(net['conv5_2'])
-    net['pool5'] = MaxPooling1D(name='pool5')(net['conv5_3'])
-    # Block 6
-    net['conv6_1'] = Conv1D(512, 3, activation='relu',
-                                    padding='same',
-                                    name='conv6_1')(net['pool5'])
-    net['conv6_2'] = Conv1D(512, 3, activation='relu',
-                                    padding='same',
-                                    name='conv6_2')(net['conv6_1'])
-    net['conv6_3'] = Conv1D(512, 3, activation='relu',
-                                    padding='same',
-                                    name='conv6_3')(net['conv6_2'])
-    net['pool6'] = MaxPooling1D(name='pool6')(net['conv6_3'])
-    # Block 7
-    net['conv7_1'] = Conv1D(1024, 3, activation='relu',
-                                    padding='same',
-                                    name='conv7_1')(net['pool6'])
-    net['conv7_2'] = Conv1D(1024, 3, activation='relu',
-                                    padding='same',
-                                    name='conv7_2')(net['conv7_1'])
-    net['conv7_3'] = Conv1D(1024, 3, activation='relu',
-                                    padding='same',
-                                    name='conv7_3')(net['conv7_2'])
-    net['pool7'] = MaxPooling1D(name='pool7')(net['conv7_3'])
+    x = Conv1DBNRelu(x, net, '7_1', 1024)
+    x = Conv1DBNRelu(x, net, '7_2', 1024)
+    x = Conv1DBNRelu(x, net, '7_3', 1024)
+    x = MaxPool1D(x, net, '7')
 
-    # Block 8
-    net['conv8_1'] = Conv1D(2048, 3, activation='relu',
-                                    padding='same',
-                                    name='conv8_1')(net['pool7'])
-    net['conv8_2'] = Conv1D(2048, 3, activation='relu',
-                                    padding='same',
-                                    name='conv8_2')(net['conv8_1'])
-    net['conv8_3'] = Conv1D(2048, 3, activation='relu',
-                                    padding='same',
-                                    name='conv8_3')(net['conv8_2'])
-    net['upsample8'] = UpSampling1D(name='upsample8')(net['conv8_3'])
+    x = Conv1DBNRelu(x, net, '8_1', 2048)
+    x = Conv1DBNRelu(x, net, '8_2', 2048)
+    x = Conv1DBNRelu(x, net, '8_3', 2048)
+    x = Upsample1D(x, net, '8')
 
-    # Block 9
-    net['conv9_1'] = Conv1D(1024, 3, activation='relu',
-                                    padding='same',
-                                    name='conv9_1')(net['upsample8'])
-    net['conv9_2'] = Conv1D(1024, 3, activation='relu',
-                                    padding='same',
-                                    name='conv9_2')(net['conv9_1'])
-    net['conv9_3'] = Conv1D(1024, 3, activation='relu',
-                                    padding='same',
-                                    name='conv9_3')(net['conv9_2'])
-    net['upsample9'] = UpSampling1D(name='upsample9')(net['conv9_3'])
-    # Block 10
-    net['conv10_1'] = Conv1D(512, 3, activation='relu',
-                                    padding='same',
-                                    name='conv10_1')(net['upsample9'])
-    net['conv10_2'] = Conv1D(512, 3, activation='relu',
-                                    padding='same',
-                                    name='conv10_2')(net['conv10_1'])
-    net['conv10_3'] = Conv1D(512, 3, activation='relu',
-                                    padding='same',
-                                    name='conv10_3')(net['conv10_2'])
-    net['upsample10'] = UpSampling1D(name='upsample10')(net['conv10_3'])
-    # Block 11
-    net['conv11_1'] = Conv1D(256, 3, activation='relu',
-                                    padding='same',
-                                    name='conv11_1')(net['upsample10'])
-    net['conv11_2'] = Conv1D(256, 3, activation='relu',
-                                    padding='same',
-                                    name='conv11_2')(net['conv11_1'])
-    net['conv11_3'] = Conv1D(256, 3, activation='relu',
-                                    padding='same',
-                                    name='conv11_3')(net['conv11_2'])
-    net['upsample11'] = UpSampling1D(name='upsample11')(net['conv11_3'])
-    # Block 12
-    net['conv12_1'] = Conv1D(128, 3, activation='relu',
-                                    padding='same',
-                                    name='conv12_1')(net['upsample11'])
-    net['conv12_2'] = Conv1D(128, 3, activation='relu',
-                                    padding='same',
-                                    name='conv12_2')(net['conv12_1'])
-    net['conv12_3'] = Conv1D(128, 3, activation='relu',
-                                    padding='same',
-                                    name='conv12_3')(net['conv12_2'])
-    net['upsample12'] = UpSampling1D(name='upsample12')(net['conv12_3'])
-    # Block 13
-    net['conv13_1'] = Conv1D(64, 3, activation='relu',
-                                    padding='same',
-                                    name='conv13_1')(net['upsample12'])
-    # net['conv13_1'] = Conv1D(16, 3, activation='relu',
-    #                                 padding='same',
-    #                                 name='conv13_1')(net['upsample4'])
-    net['conv13_2'] = Conv1D(64, 3, activation='relu',
-                                    padding='same',
-                                    name='conv13_2')(net['conv13_1'])
-    net['conv13_3'] = Conv1D(64, 3, activation='relu',
-                                    padding='same',
-                                    name='conv13_3')(net['conv13_2'])
-    net['upsample13'] = UpSampling1D(name='upsample13')(net['conv13_3'])
-    # Block 14
-    net['conv14_1'] = Conv1D(32, 3, activation='relu',
-                                    padding='same',
-                                    name='conv14_1')(net['upsample13'])
-    net['conv14_2'] = Conv1D(32, 3, activation='relu',
-                                    padding='same',
-                                    name='conv14_2')(net['conv14_1'])
-    net['conv14_3'] = Conv1D(32, 3, activation='relu',
-                                    padding='same',
-                                    name='conv14_3')(net['conv14_2'])
-    net['upsample14'] = UpSampling1D(name='upsample14')(net['conv14_3'])
-    # Block 15
-    net['conv15_1'] = Conv1D(16, 3,
-                                    padding='same',
-                                    name='conv15_1')(net['upsample14'])
-    net['norm15_1'] = BatchNormalization(name='norm15_1')(net['conv15_1'])
-    net['relu15_1'] = Activation(activation='relu', name='relu15_1')(net['norm15_1'])                    
-    # net['conv15_1'] = Conv1D(4, 3, activation='relu',
-    #                                 padding='same',
-    #                                 name='conv15_1')(net['upsample14'])
-    net['conv15_2'] = Conv1D(16, 3,
-                                    padding='same',
-                                    name='conv15_2')(net['relu15_1'])
-    net['norm15_2'] = BatchNormalization(name='norm15_2')(net['conv15_2'])
-    net['relu15_2'] = Activation(activation='relu', name='relu15_2')(net['norm15_2'])
+    x = Conv1DBNRelu(x, net, '9_1', 1024)
+    x = Conv1DBNRelu(x, net, '9_2', 1024)
+    x = Conv1DBNRelu(x, net, '9_3', 1024)
+    x = Upsample1D(x, net, '9')
 
-    net['conv15_3'] = Conv1D(1, 3,
-                                    padding='same',
-                                    name='conv15_3')(net['relu15_2'])
-    net['norm15_3'] = BatchNormalization(name='norm15_3')(net['conv15_3'])
-    net['relu15_3'] = Activation(activation='sigmoid', name='relu15_3')(net['norm15_3'])
+    x = Conv1DBNRelu(x, net, '10_1', 512)
+    x = Conv1DBNRelu(x, net, '10_2', 512)
+    x = Conv1DBNRelu(x, net, '10_3', 512)
+    x = Upsample1D(x, net, '10')
 
-    net['flatten15_4'] = Flatten()(net['relu15_3'])
+    x = Conv1DBNRelu(x, net, '11_1', 256)
+    x = Conv1DBNRelu(x, net, '11_2', 256)
+    x = Conv1DBNRelu(x, net, '11_3', 256)
+    x = Upsample1D(x, net, '11')
+
+    x = Conv1DBNRelu(x, net, '12_1', 128)
+    x = Conv1DBNRelu(x, net, '12_2', 128)
+    x = Conv1DBNRelu(x, net, '12_3', 128)
+    x = Upsample1D(x, net, '12')
+
+    x = Conv1DBNRelu(x, net, '13_1', 64)
+    x = Conv1DBNRelu(x, net, '13_2', 64)
+    x = Conv1DBNRelu(x, net, '13_3', 64)
+    x = Upsample1D(x, net, '13')
+
+    x = Conv1DBNRelu(x, net, '14_1', 32)
+    x = Conv1DBNRelu(x, net, '14_2', 32)
+    x = Conv1DBNRelu(x, net, '14_3', 32)
+    x = Upsample1D(x, net, '14')
+
+    x = Conv1DBNRelu(x, net, '15_1', 16)
+    x = Conv1DBNRelu(x, net, '15_2', 16)
+    x = Conv1DBNSigmoid(x, net, '15_3', 1)
+    net['flatten15'] = Flatten()(x) 
 
     # # Dence 15
     # net['fc15_1'] = Flatten(name='fc15_1')(net['conv14_3'])
@@ -228,7 +136,7 @@ def MSChromNet(input_shape):
     #                                 name='fc15_3')(net['fc15_2'])
     
     # Prediction
-    net['predictions'] = net['flatten15_4']    
+    net['predictions'] = net['flatten15']    
     model = Model(net['input'], net['predictions'])
     return model
 
