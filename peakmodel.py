@@ -52,10 +52,23 @@ class PeakModel:
     @classmethod
     def normalize(cls, x, factor=None, axis=None):
         if factor:
-          return x/factor, factor
+            return x/factor, factor
         xmax = np.max(x, axis=axis)
         normalized = x/xmax
         return normalized, xmax
+    @classmethod
+    def normalize_and_spike(cls, x, noise_rate=0.03, normalization_factor=None, axis=None):
+        if normalization_factor:
+            return x/normalization_factor, normalization_factor
+        xmax = np.max(x, axis=axis)
+        normalized = x/xmax
+        noise_count = int(len(normalized) * noise_rate)
+        _id = np.arange(len(normalized))
+        np.random.shuffle(_id)
+        _id = _id[0:noise_count]
+        normalized[_id] = 1        
+        return normalized, xmax
+
     @classmethod
     def chrom(cls, datapoints, dwelltime, min_peaknumber, max_peaknumber, peak_dynamicrange, min_peakwidth, max_peakwidth):
         baselinelevel = 10**(np.random.rand() * 3)
@@ -100,11 +113,10 @@ class PeakModel:
         return Chrom, RefChrom
 
 if __name__ == '__main__':
-    for i in np.arange(128000):
-        CRHOM, REF = PeakModel.chrom(1024, dwelltime=1, min_peaknumber=1, max_peaknumber=10, peak_dynamicrange=3, min_peakwidth=8, max_peakwidth=200)
-        print(i)
-    
+       
     CHROM, REF = PeakModel.chrom(1024, dwelltime=1, min_peaknumber=1, max_peaknumber=10, peak_dynamicrange=3, min_peakwidth=8, max_peakwidth=200)
+    CHROM, factor = PeakModel.normalize_and_spike(CHROM)
+    REF, factor = PeakModel.normalize(REF)
     plt.plot(CHROM)
     plt.plot(REF)
     plt.show()
