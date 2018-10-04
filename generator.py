@@ -29,7 +29,7 @@ class Generator(object):
             inputs = []
             outputs = []
             for _ in np.arange(self.batch_size):
-                _input, _output = PeakModel.chrom(self.datapoints)
+                _input, _output = PeakModel.chrom(self.datapoints, dwelltime=1, min_peaknumber=1, max_peaknumber=10, peak_dynamicrange=3, min_peakwidth=8, max_peakwidth=200)
                 _input, _factor = self.normalize(_input)
                 _output, _factor = self.normalize(_output, _factor)
                 inputs.append(_input)
