@@ -46,3 +46,4 @@ class Generator(object):
                 inputs.append(_input)
                 outputs.append(_output)
             yield np.array(inputs).reshape(-1,self.datapoints), np.array(outputs).reshape(-1,self.datapoints)
+

@@ -64,6 +64,9 @@ class PeakModel:
 
         base, noiselevel = PeakModel.baseline(level= baselinelevel, datapoints= datapoints, dwelltime=dwelltime)
 
+        if noiselevel < 100:
+            noiselevel = 100
+
         Skews = [np.random.rand() * 5 for i in np.arange(peaknumber)]
         PeakHeights = [np.random.randint(noiselevel*3, noiselevel*(3+np.random.rand()*(10**(peak_dynamicrange-1)))) for i in np.arange(peaknumber)]
         PeakWidths = [np.random.randint(min_peakwidth, max_peakwidth + 1) for i in np.arange(peaknumber)]
@@ -97,6 +100,9 @@ class PeakModel:
         return Chrom, RefChrom
 
 if __name__ == '__main__':
+    for i in np.arange(128):
+        CRHOM, REF = PeakModel.chrom(1024, dwelltime=1, min_peaknumber=1, max_peaknumber=10, peak_dynamicrange=3, min_peakwidth=8, max_peakwidth=200)
+    
     CHROM, REF = PeakModel.chrom(1024, dwelltime=1, min_peaknumber=1, max_peaknumber=10, peak_dynamicrange=3, min_peakwidth=8, max_peakwidth=200)
     plt.plot(CHROM)
     plt.plot(REF)
