@@ -11,18 +11,7 @@ class Generator(object):
         self.peak_dynamicrange = peak_dynamicrange
         self.min_peakwidth = min_peakwidth
         self.max_peakwidth = max_peakwidth
-        
-    def zscore(self, x, axis = None):
-        xmean = np.mean(x, axis=axis, dtype='float')
-        xstd  = np.std(x, axis=axis, keepdims=True)
-        zscore = (x-xmean)/xstd
-        return zscore
-    def normalize(self, x, factor=None, axis=None):
-        if factor:
-          return x/factor, factor
-        xmax = np.max(x, axis=axis)
-        normalized = x/xmax
-        return normalized, xmax
+
     def generate(self, train=True):
         """
         batchサイズ分のデータを作ってyieldし続けるgenerator
@@ -41,8 +30,8 @@ class Generator(object):
                                                   peak_dynamicrange=self.peak_dynamicrange,
                                                   min_peakwidth=self.min_peakwidth,
                                                   max_peakwidth=self.max_peakwidth)
-                _input, _factor = self.normalize(_input)
-                _output, _factor = self.normalize(_output, _factor)
+                _input, _factor = PeakModel.normalize_and_spike(_input)
+                _output, _factor = PeakModel.normalize(_output, _factor)
                 inputs.append(_input)
                 outputs.append(_output)
             yield np.array(inputs).reshape(-1,self.datapoints), np.array(outputs).reshape(-1,self.datapoints)
