@@ -27,12 +27,16 @@ class PeakModel:
         # print('maxindex:', maxindex)
         # print('maxpos:', maxtime)
         samplepeak = np.array([np.random.poisson(peak * dwelltime / 1000) * 1000 / dwelltime for peak in refpeak])
-        return times, refpeak, samplepeak    
+        #return times, refpeak, samplepeak    
+        return refpeak
+    @classmethod
+    def simulate(cls, dwelltime, chrom):
+        simulated = np.array([np.random.poisson(chromdata * dwelltime / 1000) * 1000 / dwelltime for chromdata in chrom])
+        return simulated
     @classmethod
     def baseline(cls, level, datapoints, dwelltime):
         sample = np.array([np.random.poisson(level * dwelltime / 1000) * 1000 / dwelltime for i in np.arange(datapoints)])
-        variation = np.max(sample) - np.min(sample)
-        
+        variation = np.max(sample) - np.min(sample)        
         return sample, variation
     @classmethod
     def spikenoise(cls, datapoints):
@@ -53,22 +57,47 @@ class PeakModel:
         normalized = x/xmax
         return normalized, xmax
     @classmethod
-    def chrom(cls, datapoints):
-        baselinelevel = 10**(np.random.rand() * 5)
-        skw = np.random.rand() * 5
-        dt = np.random.randint(1,50)
-        snr = 3 + np.random.rand() * 10 
-        base, noiselevel = PeakModel.baseline(level= baselinelevel, datapoints= datapoints, dwelltime=dt)
-        peakheight = np.max([noiselevel, 10]) * snr
-        _, refpeak, samplepeak = PeakModel.peak(maxcps = peakheight, datapoints = datapoints, dwelltime = dt, skew=skw)
-        sample_with_noise = samplepeak + base
-        return samplepeak, refpeak
+    def chrom(cls, datapoints, dwelltime, min_peaknumber, max_peaknumber, peak_dynamicrange, min_peakwidth, max_peakwidth):
+        baselinelevel = 10**(np.random.rand() * 3)
+        peaknumber = np.random.randint(min_peaknumber, max_peaknumber + 1)
+        # SNRs = [3 + np.random.rand() * (10 ** (peak_dynamicrange - 1)) for i in np.arange(peaknumber)]
+
+        base, noiselevel = PeakModel.baseline(level= baselinelevel, datapoints= datapoints, dwelltime=dwelltime)
+
+        Skews = [np.random.rand() * 5 for i in np.arange(peaknumber)]
+        PeakHeights = [np.random.randint(noiselevel*3, noiselevel*(3+np.random.rand()*(10**(peak_dynamicrange-1)))) for i in np.arange(peaknumber)]
+        PeakWidths = [np.random.randint(min_peakwidth, max_peakwidth + 1) for i in np.arange(peaknumber)]
+        
+        Peaks = [PeakModel.peak(maxcps = PeakHeights[i], datapoints = PeakWidths[i], dwelltime = dwelltime, skew=Skews[i]) for i in np.arange(peaknumber)]
+        Positions = [np.random.randint(0, datapoints) for i in np.arange(peaknumber)]
+
+        # ゼロレベルにピークを配置してピークだけのクロマトを作成
+        RefChrom = np.zeros(datapoints) + baselinelevel
+        for i in np.arange(peaknumber):
+            peak = Peaks[i]
+            pos = Positions[i]
+            width = PeakWidths[i]
+            if width % 2 == 0: # 偶数
+                startpos = int(pos - width/2)
+                endpos = startpos + width
+            else:
+                startpos = int(pos - (width-1)/2)
+                endpos = startpos + width
+            if startpos >= 0 and endpos < datapoints:
+                RefChrom[startpos:startpos+width] += peak
+            else:
+                if startpos < 0 and endpos < datapoints:
+                    RefChrom[0:endpos] += peak[-startpos:width]
+                if startpos >= 0 and endpos >= datapoints:
+                    RefChrom[startpos:datapoints] = peak[0:datapoints-startpos]
+        # パルスカウントシミュレーションデータを作成
+        simulated = PeakModel.simulate(dwelltime, RefChrom)
+        Chrom = base + simulated
+
+        return Chrom, RefChrom
 
 if __name__ == '__main__':
-    DATA, REFDATA = PeakModel.chrom(200)
-    DATA, FACTOR = PeakModel.normalize(DATA)
-    REFDATA, _ = PeakModel.normalize(REFDATA, FACTOR)
-    plt.plot(REFDATA)
-    plt.plot(DATA)
+    CHROM, REF = PeakModel.chrom(1024, dwelltime=1, min_peaknumber=1, max_peaknumber=10, peak_dynamicrange=3, min_peakwidth=8, max_peakwidth=200)
+    plt.plot(CHROM)
+    plt.plot(REF)
     plt.show()
-    
