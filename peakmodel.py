@@ -54,6 +54,8 @@ class PeakModel:
         if factor:
             return x/factor, factor
         xmax = np.max(x, axis=axis)
+        if xmax == 0:
+            return x, 1
         normalized = x/xmax
         return normalized, xmax
     @classmethod
@@ -61,7 +63,11 @@ class PeakModel:
         if normalization_factor:
             return x/normalization_factor, normalization_factor
         xmax = np.max(x, axis=axis)
-        normalized = x/xmax
+        if xmax == 0:
+            normalized = x
+            xmax = 1
+        else:
+            normalized = x/xmax
         noise_count = int(len(normalized) * noise_rate)
         _id = np.arange(len(normalized))
         np.random.shuffle(_id)
@@ -112,8 +118,7 @@ class PeakModel:
 
         return Chrom, RefChrom
 
-if __name__ == '__main__':
-       
+if __name__ == '__main__':       
     CHROM, REF = PeakModel.chrom(1024, dwelltime=1, min_peaknumber=1, max_peaknumber=10, peak_dynamicrange=3, min_peakwidth=8, max_peakwidth=200)
     CHROM, factor = PeakModel.normalize_and_spike(CHROM)
     REF, factor = PeakModel.normalize(REF)

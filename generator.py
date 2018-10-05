@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 from peakmodel import PeakModel
 
 class Generator(object):
@@ -41,7 +42,11 @@ class Generator(object):
             yield np.array(inputs).reshape(-1,self.datapoints), np.array(outputs).reshape(-1,self.datapoints)
 
 if __name__ == '__main__':
-    gen = Generator(batch_size=4, datapoints=1024, spike_noise=False)
+    gen = Generator(batch_size=51200, datapoints=1024, spike_noise=False)
     g = gen.generate(train=True)
     a = np.array(next(g))
-    print(a.shape)
+    with open('trainsample.pickle', mode='wb') as f:
+        pickle.dump(a, f)
+    # with open('sample.pickle', mode='rb') as f:
+    #     b = pickle.load(f)
+    # print(b.shape)
