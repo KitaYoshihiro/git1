@@ -24,7 +24,7 @@ class Generator(object):
             #     pass
             inputs = []
             outputs = []
-            for _ in np.arange(self.batch_size):
+            for _ in np.arange(self.batch_size * 11):
                 _input, _output = PeakModel.chrom(self.datapoints, dwelltime=self.dwelltime,
                                                   min_peaknumber=self.min_peaknumber,
                                                   max_peaknumber=self.max_peaknumber,
@@ -37,8 +37,11 @@ class Generator(object):
                     _input, _factor = PeakModel.normalize(_input)
                 _output, _factor = PeakModel.normalize(_output, _factor)
                 inputs.append(_input)
-                outputs.append(_output)
-            yield np.array(inputs).reshape(-1,self.datapoints), np.array(outputs).reshape(-1,self.datapoints)
+                outputs.append(_output)            
+            for i in np.arange(11):
+                yield np.array(inputs[self.batch_size * i:self.batch_size * (i+1)]).reshape(-1,self.datapoints), np.array(outputs[self.batch_size * i:self.batch_size * (i+1)]).reshape(-1,self.datapoints)
+
+            # yield np.array(inputs).reshape(-1,self.datapoints), np.array(outputs).reshape(-1,self.datapoints)
 
 if __name__ == '__main__':
     gen = Generator(batch_size=4, datapoints=1024, spike_noise=False)
