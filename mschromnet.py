@@ -67,14 +67,14 @@ def MSChromNet(input_shape):
     x = Conv1DBNRelu(x, net, '3_1', 64)
     x = Conv1DBNRelu(x, net, '3_2', 64)
     x = Conv1DBNRelu(x, net, '3_3', 64)
-    # x = MaxPool1D(x, net, '3')
-    x = Upsample1D(x, net, '2')
+    x = MaxPool1D(x, net, '3')
+    # x = Upsample1D(x, net, '2')
 
     x = Conv1DBNRelu(x, net, '4_1', 128)
     x = Conv1DBNRelu(x, net, '4_2', 128)
     x = Conv1DBNRelu(x, net, '4_3', 128)
     # x = MaxPool1D(x, net, '4')
-    x = Upsample1D(x, net, '2')
+    x = Upsample1D(x, net, '4')
 
     # x = Conv1DBNRelu(x, net, '5_1', 256)
     # x = Conv1DBNRelu(x, net, '5_2', 256)
