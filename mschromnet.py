@@ -70,10 +70,11 @@ def MSChromNet(input_shape):
     # x = MaxPool1D(x, net, '3')
     x = Upsample1D(x, net, '2')
 
-    # x = Conv1DBNRelu(x, net, '4_1', 128)
-    # x = Conv1DBNRelu(x, net, '4_2', 128)
-    # x = Conv1DBNRelu(x, net, '4_3', 128)
+    x = Conv1DBNRelu(x, net, '4_1', 128)
+    x = Conv1DBNRelu(x, net, '4_2', 128)
+    x = Conv1DBNRelu(x, net, '4_3', 128)
     # x = MaxPool1D(x, net, '4')
+    x = Upsample1D(x, net, '2')
 
     # x = Conv1DBNRelu(x, net, '5_1', 256)
     # x = Conv1DBNRelu(x, net, '5_2', 256)
@@ -115,19 +116,19 @@ def MSChromNet(input_shape):
     # x = Conv1DBNRelu(x, net, '12_3', 128)
     # x = Upsample1D(x, net, '12')
 
-    # x = Conv1DBNRelu(x, net, '13_1', 64)
-    # x = Conv1DBNRelu(x, net, '13_2', 64)
-    # x = Conv1DBNRelu(x, net, '13_3', 64)
-    # x = Upsample1D(x, net, '13')
+    x = Conv1DBNRelu(x, net, '13_1', 64)
+    x = Conv1DBNRelu(x, net, '13_2', 64)
+    x = Conv1DBNRelu(x, net, '13_3', 64)
+    x = Upsample1D(x, net, '13')
 
-    x = Conv1DBNRelu(x, net, '14_11', 32)
-    x = Conv1DBNRelu(x, net, '14_22', 32)
-    x = Conv1DBNRelu(x, net, '14_33', 32)
+    x = Conv1DBNRelu(x, net, '14_1', 32)
+    x = Conv1DBNRelu(x, net, '14_2', 32)
+    x = Conv1DBNRelu(x, net, '14_3', 32)
     x = Upsample1D(x, net, '14')
 
-    x = Conv1DBNRelu(x, net, '15_11', 16)
-    x = Conv1DBNRelu(x, net, '15_22', 16)
-    x = Conv1DBNSigmoid(x, net, '15_33', 1)
+    x = Conv1DBNRelu(x, net, '15_1', 16)
+    x = Conv1DBNRelu(x, net, '15_2', 16)
+    x = Conv1DBNSigmoid(x, net, '15_3', 1)
     net['flatten15'] = Flatten()(x) 
 
     # # Dence 15
