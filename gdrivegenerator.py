@@ -1,6 +1,8 @@
 import numpy as np
+from numpy.random import randint
 from peakmodel import PeakModel
 from random import shuffle
+from random import random
 import pickle
 
 class GdriveGenerator(object):
@@ -26,8 +28,14 @@ class GdriveGenerator(object):
             inputs = []
             targets = []
             for i in np.arange(len(input_data)):
-                inputs.append(input_data[i])
-                targets.append(output_data[i])
+                index = randint(1024)
+                indata = input_data[i][index:index+1024]
+                outdata = output_data[i][index:index+1024]
+                if(random()<0.5):
+                    indata = indata[::-1]
+                    outdata = outdata[::-1]
+                inputs.append(indata)
+                targets.append(outdata)
                 if len(targets) == self.batch_size:
                     tmp_inp = np.array(inputs)
                     tmp_targets = np.array(targets)

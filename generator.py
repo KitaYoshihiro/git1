@@ -43,10 +43,13 @@ class Generator(object):
 
 if __name__ == '__main__':
     # gen = Generator(batch_size=51200, datapoints=1024, spike_noise=True)
-    gen = Generator(batch_size=51200, datapoints=1024, spike_noise=True)
+    gen = Generator(batch_size=12800, datapoints=2048, dwelltime=1,
+                    min_peaknumber=1, max_peaknumber=20,
+                    peak_dynamicrange=3, min_peakwidth=8,
+                    max_peakwidth=50, spike_noise=True)
     g = gen.generate(train=True)
     a = np.array(next(g))
-    with open('trainsample_with_noise2.pickle', mode='wb') as f:
+    with open('validatesample_with_noise.pickle', mode='wb') as f:
         pickle.dump(a, f)
     # with open('sample.pickle', mode='rb') as f:
     #     b = pickle.load(f)

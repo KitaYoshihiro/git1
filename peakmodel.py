@@ -124,8 +124,9 @@ class PeakModel:
         return Chrom, RefChrom
 
 if __name__ == '__main__':       
-    CHROM, REF = PeakModel.chrom(1024, dwelltime=1, min_peaknumber=1, max_peaknumber=10, peak_dynamicrange=3, min_peakwidth=8, max_peakwidth=200)
-    CHROM, factor = PeakModel.normalize_and_spike(CHROM)
+    CHROM, REF = PeakModel.chrom(1024, dwelltime=1, min_peaknumber=5, max_peaknumber=20, peak_dynamicrange=5, min_peakwidth=8, max_peakwidth=50)
+    # CHROM, factor = PeakModel.normalize_and_spike(CHROM)
+    CHROM, factor = PeakModel.normalize(CHROM)
     REF, factor = PeakModel.normalize(REF)
     plt.plot(CHROM)
     plt.plot(REF)
