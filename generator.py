@@ -42,10 +42,11 @@ class Generator(object):
             yield np.array(inputs).reshape(-1,self.datapoints), np.array(outputs).reshape(-1,self.datapoints)
 
 if __name__ == '__main__':
+    # gen = Generator(batch_size=51200, datapoints=1024, spike_noise=True)
     gen = Generator(batch_size=51200, datapoints=1024, spike_noise=True)
     g = gen.generate(train=True)
     a = np.array(next(g))
-    with open('trainsample_with_noise.pickle', mode='wb') as f:
+    with open('trainsample_with_noise2.pickle', mode='wb') as f:
         pickle.dump(a, f)
     # with open('sample.pickle', mode='rb') as f:
     #     b = pickle.load(f)

@@ -17,26 +17,31 @@ class PeakModel:
 #         mode = location + scale * moa
 #         _norm_ = skewnorm.pdf(x=mode, a=alpha, loc=location, scale=scale) # 標準正規分布の高さ
 
-        times = np.linspace(-sigma, sigma, datapoints)                
-        _refpeak_ = [skewnorm.pdf(x = time, a=alpha, loc=0, scale=scale) for time in times]
+        times = np.linspace(-sigma, sigma, datapoints)
+        _refpeak_ = skewnorm.pdf(x = times, a=alpha, loc=0, scale=scale)
+        # _refpeak_ = [skewnorm.pdf(x = time, a=alpha, loc=0, scale=scale) for time in times]
         _norm_ = np.max(_refpeak_)
         maxindex = np.argmax(_refpeak_)
         maxtime = times[maxindex]
         # refpeak = np.array(_refpeak_) * maxcps / _norm_
-        refpeak = np.array([skewnorm.pdf(x=time, a=alpha, loc= location - maxtime, scale=scale) * maxcps / _norm_ for time in times])
+        # refpeak = np.array([skewnorm.pdf(x=time, a=alpha, loc= location - maxtime, scale=scale) * maxcps / _norm_ for time in times])
+        #refpeak = np.array(skewnorm.pdf(x=times, a=alpha, loc= location - maxtime, scale=scale) * maxcps / _norm_ )
+        refpeak = skewnorm.pdf(x=times, a=alpha, loc= location - maxtime, scale=scale) * maxcps / _norm_ 
         # print('maxindex:', maxindex)
         # print('maxpos:', maxtime)
-        samplepeak = np.array([np.random.poisson(peak * dwelltime / 1000) * 1000 / dwelltime for peak in refpeak])
-        #return times, refpeak, samplepeak    
+        # samplepeak = np.array([np.random.poisson(peak * dwelltime / 1000) * 1000 / dwelltime for peak in refpeak])
+        # return times, refpeak, samplepeak    
         return refpeak
     @classmethod
     def simulate(cls, dwelltime, chrom):
-        simulated = np.array([np.random.poisson(chromdata * dwelltime / 1000) * 1000 / dwelltime for chromdata in chrom])
+        # simulated = np.array([np.random.poisson(chromdata * dwelltime / 1000) * 1000 / dwelltime for chromdata in chrom])
+        simulated = np.random.poisson(chrom * dwelltime / 1000) * 1000 / dwelltime
         return simulated
     @classmethod
     def baseline(cls, level, datapoints, dwelltime):
-        sample = np.array([np.random.poisson(level * dwelltime / 1000) * 1000 / dwelltime for i in np.arange(datapoints)])
-        variation = np.max(sample) - np.min(sample)        
+        sample = np.array(np.random.poisson(level * dwelltime / 1000, datapoints) * 1000)
+        # sample = np.array([np.random.poisson(level * dwelltime / 1000) * 1000 / dwelltime for i in np.arange(datapoints)])
+        variation = np.max(sample) - np.min(sample)
         return sample, variation
     @classmethod
     def spikenoise(cls, datapoints):
@@ -72,7 +77,7 @@ class PeakModel:
         _id = np.arange(len(normalized))
         np.random.shuffle(_id)
         _id = _id[0:noise_count]
-        normalized[_id] = 1        
+        normalized[_id] = 1
         return normalized, xmax
 
     @classmethod
