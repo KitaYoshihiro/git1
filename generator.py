@@ -42,15 +42,18 @@ class Generator(object):
             yield np.array(inputs).reshape(-1,self.datapoints), np.array(outputs).reshape(-1,self.datapoints)
 
 if __name__ == '__main__':
-    # gen = Generator(batch_size=51200, datapoints=1024, spike_noise=True)
-    gen = Generator(batch_size=51200, datapoints=1024, dwelltime=1,
+    # gen = Generator(batch_size=12800, datapoints=2048, spike_noise=True)
+    batch_size = 64000
+    train_size = round(batch_size * 0.8)
+    gen = Generator(batch_size=batch_size, datapoints=2048, dwelltime=1,
                     min_peaknumber=1, max_peaknumber=10,
                     peak_dynamicrange=3, min_peakwidth=8,
-                    max_peakwidth=200, spike_noise=True)
+                    max_peakwidth=200, spike_noise=False)
     g = gen.generate(train=True)
     a = np.array(next(g))
-    with open('validatesample_with_noise.pickle', mode='wb') as f:
-        pickle.dump(a, f)
-    # with open('sample.pickle', mode='rb') as f:
-    #     b = pickle.load(f)
-    # print(b.shape)
+    train_batch = a[:, 0:train_size, :]
+    validate_batch = a[:, train_size:, :]
+    with open('trainsample.pickle', mode='wb') as f:
+        pickle.dump(train_batch, f)
+    with open('validatesample.pickle', mode='wb') as f:
+        pickle.dump(validate_batch, f)
