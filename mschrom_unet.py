@@ -105,7 +105,7 @@ def MSChromUNet(input_shape, depth=0, num_classes=2):
     net['input'] = input_tensor
     net['reshape1'] = Reshape((input_shape[0],1), name='reshape1')(net['input'])
     x = net['reshape1']
-    structure = [[32,32],[32,32,32],[64,64,64],[128,128,128],
+    structure = [[16,16],[32,32,32],[64,64,64],[128,128,128],
                 [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024]]
     x = UNet_Builder(x, net, 1, structure, depth)
     x = Conv1DBNSigmoid(x, net, '_autoencoder', 1)
