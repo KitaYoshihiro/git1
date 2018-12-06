@@ -34,9 +34,9 @@ class GdriveGenerator(object):
                 if(random()<0.5):
                     indata = indata[::-1]
                     outdata = outdata[::-1]
-                indata = indata / np.max(indata)
+                # indata = indata / np.max(indata)
                 inputs.append(indata)
-                outdata = outdata / np.max(outdata)
+                # outdata = outdata / np.max(outdata)
                 targets.append(outdata)
                 if len(targets) == self.batch_size:
                     tmp_inp = np.array(inputs)
