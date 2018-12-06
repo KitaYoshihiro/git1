@@ -34,7 +34,9 @@ class GdriveGenerator(object):
                 if(random()<0.5):
                     indata = indata[::-1]
                     outdata = outdata[::-1]
+                indata = indata / np.amax(indata)                
                 inputs.append(indata)
+                outdata = outdata / np.amax(outdata)
                 targets.append(outdata)
                 if len(targets) == self.batch_size:
                     tmp_inp = np.array(inputs)
@@ -42,9 +44,7 @@ class GdriveGenerator(object):
                     inputs = []
                     targets = []
                     epsilon = 0.0000001 # 10e-7
-                    tmp_inp = tmp_inp / np.amax(tmp_inp)
                     tmp_inp = np.log10(tmp_inp + epsilon) / 7 + 1
-                    tmp_targets = tmp_targets / np.amax(tmp_targets)
                     tmp_targets = np.log10(tmp_targets + epsilon) / 7 + 1
                     yield tmp_inp, tmp_targets
 
