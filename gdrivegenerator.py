@@ -42,7 +42,9 @@ class GdriveGenerator(object):
                     inputs = []
                     targets = []
                     epsilon = 0.0000001 # 10e-7
+                    tmp_inp = tmp_inp / np.amax(tmp_inp)
                     tmp_inp = np.log10(tmp_inp + epsilon) / 7 + 1
+                    tmp_targets = tmp_targets / np.amax(tmp_targets)
                     tmp_targets = np.log10(tmp_targets + epsilon) / 7 + 1
                     yield tmp_inp, tmp_targets
 
