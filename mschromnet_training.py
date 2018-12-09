@@ -79,6 +79,7 @@ class MultiboxLoss(object):
                 y_true[:, :, -7:] are all 0.
             y_pred: Predicted logits,
                 tensor of shape (?, num_boxes, 4 + num_classes + 8).
+                tensor of shape (?, num_boxes, 2 + num_classes + 4). // for chrom
 
         # Returns
             loss: Loss for prediction, tensor of shape (?,).
@@ -87,16 +88,25 @@ class MultiboxLoss(object):
         num_boxes = tf.to_float(tf.shape(y_true)[1])
 
         # loss for all priors
-        conf_loss = self._softmax_loss(y_true[:, :, 4:-8],
-                                       y_pred[:, :, 4:-8])
-        loc_loss = self._l1_smooth_loss(y_true[:, :, :4],
-                                        y_pred[:, :, :4])
+        # conf_loss = self._softmax_loss(y_true[:, :, 4:-8],
+        #                                y_pred[:, :, 4:-8])
+        # loc_loss = self._l1_smooth_loss(y_true[:, :, :4],
+        #                                 y_pred[:, :, :4])
+        conf_loss = self._softmax_loss(y_true[:, :, 2:-4],
+                                       y_pred[:, :, 2:-4])
+        loc_loss = self._l1_smooth_loss(y_true[:, :, :2],
+                                        y_pred[:, :, :2])
 
         # get positives loss
-        num_pos = tf.reduce_sum(y_true[:, :, -8], axis=-1)
-        pos_loc_loss = tf.reduce_sum(loc_loss * y_true[:, :, -8],
-                                     axis=1)
-        pos_conf_loss = tf.reduce_sum(conf_loss * y_true[:, :, -8],
+        # num_pos = tf.reduce_sum(y_true[:, :, -8], axis=-1)
+        # pos_loc_loss = tf.reduce_sum(loc_loss * y_true[:, :, -8],
+        #                              axis=1)
+        # pos_conf_loss = tf.reduce_sum(conf_loss * y_true[:, :, -8],
+        #                               axis=1)
+        num_pos = tf.reduce_sum(y_true[:, :, -4], axis=-1) # 教師データ中でpositiveとマークされているprior_boxの数を数える
+        pos_loc_loss = tf.reduce_sum(loc_loss * y_true[:, :, -4],
+                                     axis=1) # y_true の乗算ではTrue=1, False=0 を前提としている
+        pos_conf_loss = tf.reduce_sum(conf_loss * y_true[:, :, -4],
                                       axis=1)
 
         # get negatives loss, we penalize only confidence here
@@ -109,19 +119,18 @@ class MultiboxLoss(object):
         num_neg_batch = tf.reduce_min(tf.boolean_mask(num_neg,
                                                       tf.greater(num_neg, 0)))
         num_neg_batch = tf.to_int32(num_neg_batch)
-        confs_start = 4 + self.background_label_id + 1
+        # confs_start = 4 + self.background_label_id + 1
+        # confs_end = confs_start + self.num_classes - 1
+        confs_start = 2 + self.background_label_id + 1
         confs_end = confs_start + self.num_classes - 1
         max_confs = tf.reduce_max(y_pred[:, :, confs_start:confs_end],
                                   axis=2)
-        _, indices = tf.nn.top_k(max_confs * (1 - y_true[:, :, -8]),
+        _, indices = tf.nn.top_k(max_confs * (1 - y_true[:, :, -4]),
                                  k=num_neg_batch)
         batch_idx = tf.expand_dims(tf.range(0, batch_size), 1)
         batch_idx = tf.tile(batch_idx, (1, num_neg_batch))
         full_indices = (tf.reshape(batch_idx, [-1]) * tf.to_int32(num_boxes) +
                         tf.reshape(indices, [-1]))
-        # full_indices = tf.concat(2, [tf.expand_dims(batch_idx, 2),
-        #                              tf.expand_dims(indices, 2)])
-        # neg_conf_loss = tf.gather_nd(conf_loss, full_indices)
         neg_conf_loss = tf.gather(tf.reshape(conf_loss, [-1]),
                                   full_indices)
         neg_conf_loss = tf.reshape(neg_conf_loss,
