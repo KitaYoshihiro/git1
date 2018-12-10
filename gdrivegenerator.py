@@ -14,7 +14,7 @@ class GdriveGenerator(object):
         self.validate_data = validate_data
         self.log_intensity = log_intensity
 
-    def generate(self, train=True):
+    def generate(self, train=True, autoencoder=False):
         """
         batchサイズ分のデータを作ってyieldし続けるgenerator
         """
@@ -74,7 +74,10 @@ class GdriveGenerator(object):
                         tmp_inp = np.log10(tmp_inp + epsilon) / 7 + 1
                         tmp_targets = np.log10(tmp_targets + epsilon) / 7 + 1
                     # yield tmp_inp, tmp_targets, tmp_locations
-                    yield tmp_inp, tmp_locations
+                    if autoencoder:
+                        yield tmp_inp, tmp_targets
+                    else:
+                        yield tmp_inp, tmp_locations
 
 if __name__ == '__main__':
     with open('sampledata.pkl', mode='rb') as f:
