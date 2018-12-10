@@ -100,6 +100,7 @@ class PeakModel:
 
         # ゼロレベルにピークを配置してピークだけのクロマトを作成
         RefChrom = np.zeros(datapoints) + baselinelevel
+        NormalizedPeakPositions = np.zeros((peaknumber, 3)) # (start, end, class(=1))
         for i in np.arange(peaknumber):
             peak = Peaks[i]
             pos = Positions[i]
@@ -112,23 +113,37 @@ class PeakModel:
                 endpos = startpos + width
             if startpos >= 0 and endpos < datapoints:
                 RefChrom[startpos:startpos+width] += peak
+                peakpos_min = startpos
+                peakpos_max = startpos+width
             else:
                 if startpos < 0 and endpos < datapoints:
                     RefChrom[0:endpos] += peak[-startpos:width]
+                    peakpos_min = 0
+                    peakpos_max = endpos
                 if startpos >= 0 and endpos >= datapoints:
                     RefChrom[startpos:datapoints] = peak[0:datapoints-startpos]
+                    peakpos_min = startpos
+                    peakpos_max = datapoints
+            # poakpos_min, peakpos_maxを正規化
+            NormalizedPeakPositions[i,0] = (peakpos_min + 0.5) / datapoints
+            NormalizedPeakPositions[i,1] = (peakpos_max - 0.5) / datapoints
+            NormalizedPeakPositions[i,2] = 1
+
         # パルスカウントシミュレーションデータを作成
         simulated = PeakModel.simulate(dwelltime, RefChrom)
         Chrom = base + simulated
 
-        return Chrom, RefChrom
+        return Chrom, RefChrom, NormalizedPeakPositions
 
 if __name__ == '__main__':       
-    CHROM, REF = PeakModel.chrom(1024, dwelltime=1, min_peaknumber=5, max_peaknumber=8, peak_dynamicrange=2, min_peakwidth=20, max_peakwidth=100)
+    CHROM, REF, Positions = PeakModel.chrom(1024, dwelltime=1, min_peaknumber=5, max_peaknumber=8, peak_dynamicrange=2, min_peakwidth=20, max_peakwidth=100)
     # CHROM, factor = PeakModel.normalize_and_spike(CHROM)
+    RealPositions = Positions * 1024
     CHROM, factor = PeakModel.normalize(CHROM)
     REF, factor = PeakModel.normalize(REF)
+    print(np.sort(RealPositions, axis=0))
     plt.plot(CHROM)
     plt.show()
     plt.plot(REF)
     plt.show()
+

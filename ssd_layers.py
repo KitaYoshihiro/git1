@@ -191,7 +191,7 @@ class PriorBox(Layer):
         prior_boxes_tensor = K.expand_dims(K.variable(prior_boxes), 0) # バックエンドテンソルに変換（１次元追加）shape:TensorShape([Dimension(1), Dimension(54), Dimension(8)])
         if K.backend() == 'tensorflow':
             pattern = [tf.shape(x)[0], 1, 1] # patternのshapeは(none, 1, 1)的な感じ。tf.shape(x)[0]はバッチ数
-            prior_boxes_tensor = tf.tile(prior_boxes_tensor, pattern) # TensorShape([Dimension(None), Dimension(54), Dimension(8)]) これはバッチ数だけタイルされた形（バッチ数はNoneで予約）
+            prior_boxes_tensor = tf.tile(prior_boxes_tensor, pattern) # TensorShape([Dimension(None), Dimension(54), Dimension(8)]) バッチ数はNoneで予約、「54」一例（特定のfeaturemap上のpriorの数）
         elif K.backend() == 'theano':
             #TODO
             pass

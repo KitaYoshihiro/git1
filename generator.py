@@ -25,8 +25,9 @@ class Generator(object):
             #     pass
             inputs = []
             outputs = []
+            normalized_positions = []
             for _ in np.arange(self.batch_size):
-                _input, _output = PeakModel.chrom(self.datapoints, dwelltime=self.dwelltime,
+                _input, _output, _normal_positions = PeakModel.chrom(self.datapoints, dwelltime=self.dwelltime,
                                                   min_peaknumber=self.min_peaknumber,
                                                   max_peaknumber=self.max_peaknumber,
                                                   peak_dynamicrange=self.peak_dynamicrange,
@@ -39,8 +40,10 @@ class Generator(object):
                 _output, _factor = PeakModel.normalize(_output, _factor)
                 inputs.append(_input)
                 outputs.append(_output)
-            yield np.array(inputs).reshape(-1,self.datapoints), np.array(outputs).reshape(-1,self.datapoints)
-
+                normalized_positions.append(_normal_positions)
+            # yield np.array(inputs).reshape(-1,self.datapoints), np.array(outputs).reshape(-1,self.datapoints)
+            yield np.array(inputs), np.array(outputs), np.array(normalized_positions)
+            
 if __name__ == '__main__':
     # gen = Generator(batch_size=12800, datapoints=2048, spike_noise=True)
     batch_size = 64000
@@ -50,9 +53,13 @@ if __name__ == '__main__':
                     peak_dynamicrange=3, min_peakwidth=8,
                     max_peakwidth=200, spike_noise=False)
     g = gen.generate(train=True)
-    a = np.array(next(g))
-    train_batch = a[:, 0:train_size, :]
-    validate_batch = a[:, train_size:, :]
+    generated = next(g)
+    chroms = np.array(generated[0:2])
+    ranges = np.array(generated[2])
+    train_batch = (chroms[:, 0:train_size, :], ranges[0:train_size])
+    validate_batch = (chroms[:, train_size:, :], ranges[train_size:])
+    # with open('sampledata.pkl', mode='wb') as f:
+    #     pickle.dump(train_batch, f)
     with open('trainsample.pickle', mode='wb') as f:
         pickle.dump(train_batch, f)
     with open('validatesample.pickle', mode='wb') as f:
