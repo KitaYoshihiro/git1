@@ -73,7 +73,8 @@ class GdriveGenerator(object):
                     if self.log_intensity:
                         tmp_inp = np.log10(tmp_inp + epsilon) / 7 + 1
                         tmp_targets = np.log10(tmp_targets + epsilon) / 7 + 1
-                    yield tmp_inp, tmp_targets, tmp_locations
+                    # yield tmp_inp, tmp_targets, tmp_locations
+                    yield tmp_inp, tmp_locations
 
 if __name__ == '__main__':
     with open('sampledata.pkl', mode='rb') as f:
