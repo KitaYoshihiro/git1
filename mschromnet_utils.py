@@ -3,6 +3,53 @@
 import numpy as np
 import tensorflow as tf
 
+class NonMaxSuppression(object):
+    def __init__(self, max_output_size, iou_threshold):
+        self.max_output_size = max_output_size
+        self.iou_threshold = iou_threshold
+
+    def non_max_suppression(self, boxes, scores, overlap_thresh):
+        """ NMS
+        """
+        # if there are no boxes, return an empty list
+        if boxes.size == 0:
+            return []
+        
+        # (NumBoxes, 2) の numpy 配列を x1, x2 の一覧を表す4つの (NumBoxes, 1) の numpy 配列に分割する。
+        x1, x2 = np.squeeze(np.split(boxes, 2, axis=1))
+
+        # 矩形の面積を計算する。→　幅を計算する。
+        area = x2 - x1
+
+        indices = np.argsort(scores)  # スコアを降順にソートしたインデックス一覧
+        selected = []  # NMS により選択されたインデックス一覧
+
+        # indices がなくなるまでループする。
+        while len(indices) > 0:
+            # indices は降順にソートされているので、一番最後の要素の値 (インデックス) が
+            # 残っている中で最もスコアが高い。
+            last = len(indices) - 1
+
+            selected_index = indices[last]
+            remaining_indices = indices[:last]
+            selected.append(selected_index)
+            
+            # 選択した短形と残りの短形の共通部分の x1, x2 を計算する。
+            i_x1 = np.maximum(x1[selected_index], x1[remaining_indices])
+            i_x2 = np.minimum(x2[selected_index], x2[remaining_indices])
+
+            # 選択した短形と残りの短形の共通部分の幅及び高さを計算する。
+            # 共通部分がない場合は、幅や高さは負の値になるので、その場合、幅や高さは 0 とする。
+            i_w = np.maximum(0, i_x2 - i_x1)
+
+            # 選択した短形と残りの短形の Overlap Ratio を計算する。
+            overlap = i_w / area[remaining_indices]
+            # 選択した短形及び OVerlap Ratio が閾値以上の短形を indices から削除する。
+            indices = np.delete(indices, np.concatenate(([last], np.where(overlap > overlap_thresh)[0])))
+        
+        # 選択された短形の一覧を返す。
+        # return boxes[selected]
+        return selected
 
 class BBoxUtility(object):
     """Utility class to do some stuff with bounding boxes and priors.
@@ -33,6 +80,7 @@ class BBoxUtility(object):
         # self.nms = tf.image.non_max_suppression(self.boxes, self.scores,
         #                                         self._top_k,
         #                                         iou_threshold=self._nms_thresh)
+        self.nms = NonMaxSuppression(self._top_k, self._nms_thresh)
         self.sess = tf.Session(config=tf.ConfigProto(device_count={'GPU': 0}))
 
     @property
@@ -42,9 +90,10 @@ class BBoxUtility(object):
     @nms_thresh.setter
     def nms_thresh(self, value):
         self._nms_thresh = value
-        self.nms = tf.image.non_max_suppression(self.boxes, self.scores,
-                                                self._top_k,
-                                                iou_threshold=self._nms_thresh)
+        # self.nms = tf.image.non_max_suppression(self.boxes, self.scores,
+        #                                         self._top_k,
+        #                                         iou_threshold=self._nms_thresh)
+        self.nms = NonMaxSuppression(self._top_k, self._nms_thresh)
 
     @property
     def top_k(self):
@@ -53,9 +102,10 @@ class BBoxUtility(object):
     @top_k.setter
     def top_k(self, value):
         self._top_k = value
-        self.nms = tf.image.non_max_suppression(self.boxes, self.scores,
-                                                self._top_k,
-                                                iou_threshold=self._nms_thresh)
+        # self.nms = tf.image.non_max_suppression(self.boxes, self.scores,
+        #                                         self._top_k,
+        #                                         iou_threshold=self._nms_thresh)
+        self.nms = NonMaxSuppression(self._top_k, self._nms_thresh)
 
     def iou(self, box):
         """Compute intersection over union for the box with all priors.
@@ -262,9 +312,11 @@ class BBoxUtility(object):
                 if len(c_confs[c_confs_m]) > 0:
                     boxes_to_process = decode_bbox[c_confs_m]
                     confs_to_process = c_confs[c_confs_m]
-                    feed_dict = {self.boxes: boxes_to_process,
-                                 self.scores: confs_to_process}
-                    idx = self.sess.run(self.nms, feed_dict=feed_dict)
+                    # feed_dict = {self.boxes: boxes_to_process,
+                    #              self.scores: confs_to_process}
+                    # idx = self.sess.run(self.nms, feed_dict=feed_dict)
+                    idx = self.nms.non_max_suppression(boxes_to_process, confs_to_process, self.nms_thresh)
+
                     good_boxes = boxes_to_process[idx]
                     confs = confs_to_process[idx][:, None]
                     labels = c * np.ones((len(idx), 1))
