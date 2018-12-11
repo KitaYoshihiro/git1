@@ -55,7 +55,7 @@ def Concat(input, input2, net, basename):
     net['concat' + basename] =  Concatenate(name='concat' + basename, axis=2)([input, input2])
     return net['concat' + basename] 
 
-def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True, peak_detector=True):
+def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True, autoencoder=False):
     """ building U-net
     # input: input keras tensor
     # net: list for network layers (keras tensors)
@@ -100,24 +100,25 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True, p
             x = Conv1DBNRelu(x, net, '_r_'+str(initial_layer_id)+'_'+str(subid)+depth_label, channel)
             subid += 1
     # ConvBNReLUを複数回済ませてリターンする直前（返値はその後Upsampleされる）のこの位置にLoc, Conf, Priorレイヤを設置
-    num_priors = 5
-    channels_num = x.shape[1].value # レイヤの大きさを拾う（8～1024）
-    min_width = channels_num # それをPriorboxのmin_widthに使う
-    net['L'+str(initial_layer_id)+'_mbox_loc'] = Conv1D(num_priors * 2, 3,
-                        padding='same',
-                        name='L'+str(initial_layer_id)+'_mbox_loc')(x)
-    net['L'+str(initial_layer_id)+'_mbox_loc_flat'] = Flatten(name='L'+str(initial_layer_id)+'_mbox_loc_flat')(net['L'+str(initial_layer_id)+'_mbox_loc'])
-    net['L'+str(initial_layer_id)+'_mbox_conf'] = Conv1D(num_priors * 2, 3,
-                        padding='same',
-                        name='L'+str(initial_layer_id)+'_mbox_conf')(x)
-    net['L'+str(initial_layer_id)+'_mbox_conf_flat'] = Flatten(name='L'+str(initial_layer_id)+'_mbox_conf_flat')(net['L'+str(initial_layer_id)+'_mbox_conf'])
-    net['L'+str(initial_layer_id)+'_mbox_priorbox'] = PriorBox(input_shape[0], min_width,
-                        aspect_ratios=[2, 3],
-                        variances=[0.1, 0.2],
-                        name='L'+str(initial_layer_id)+'_mbox_priorbox')(x)
+    if not autoencoder:
+        num_priors = 5
+        channels_num = x.shape[1].value # レイヤの大きさを拾う（8～1024）
+        min_width = channels_num # それをPriorboxのmin_widthに使う
+        net['L'+str(initial_layer_id)+'_mbox_loc'] = Conv1D(num_priors * 2, 3,
+                            padding='same',
+                            name='L'+str(initial_layer_id)+'_mbox_loc')(x)
+        net['L'+str(initial_layer_id)+'_mbox_loc_flat'] = Flatten(name='L'+str(initial_layer_id)+'_mbox_loc_flat')(net['L'+str(initial_layer_id)+'_mbox_loc'])
+        net['L'+str(initial_layer_id)+'_mbox_conf'] = Conv1D(num_priors * 2, 3,
+                            padding='same',
+                            name='L'+str(initial_layer_id)+'_mbox_conf')(x)
+        net['L'+str(initial_layer_id)+'_mbox_conf_flat'] = Flatten(name='L'+str(initial_layer_id)+'_mbox_conf_flat')(net['L'+str(initial_layer_id)+'_mbox_conf'])
+        net['L'+str(initial_layer_id)+'_mbox_priorbox'] = PriorBox(input_shape[0], min_width,
+                            aspect_ratios=[2, 3],
+                            variances=[0.1, 0.2],
+                            name='L'+str(initial_layer_id)+'_mbox_priorbox')(x)
     return x
 
-def MSChromUNet(input_shape, depth=0, u_net=True, peak_detector=True, num_classes=2):
+def MSChromUNet(input_shape, depth=0, u_net=True, autoencoder=False, num_classes=2):
     """SSD-like 1D architecture
     """
     net = {}
@@ -128,14 +129,14 @@ def MSChromUNet(input_shape, depth=0, u_net=True, peak_detector=True, num_classe
     x = net['reshape1']
     structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
                 [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024]]
-    x = UNet_Builder(x, net, 1, structure, depth, u_net=u_net, peak_detector=peak_detector)
+    x = UNet_Builder(x, net, 1, structure, depth, u_net=u_net, autoencoder=autoencoder)
 
     # Autoencoder
     x = Conv1DBNSigmoid(x, net, '_autoencoder', 1)
     net['autoencoder_flatten'] = Flatten(name='autoencoder_flatten')(x)
 
     # Gather Predictions
-    if peak_detector:        
+    if not autoencoder:
         net['mbox_loc'] = Concatenate(name='mbox_loc', axis=1)([
                                 net['L1_mbox_loc_flat'],
                                 net['L2_mbox_loc_flat'],
@@ -178,11 +179,11 @@ def MSChromUNet(input_shape, depth=0, u_net=True, peak_detector=True, num_classe
                                 net['mbox_priorbox']])
     else:
         net['predictions'] = net['autoencoder_flatten']
-        
+
     model = Model(net['input'], net['predictions'])
     return model
 
 if __name__ == '__main__':
     input_shape = (1024, )
-    mymodel = MSChromUNet(input_shape, 8, u_net=True, peak_detector=True)
+    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False)
     print(mymodel.summary())
