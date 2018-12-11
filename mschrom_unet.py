@@ -112,7 +112,7 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True, a
                             padding='same',
                             name='L'+str(initial_layer_id)+'_mbox_conf')(x)
         net['L'+str(initial_layer_id)+'_mbox_conf_flat'] = Flatten(name='L'+str(initial_layer_id)+'_mbox_conf_flat')(net['L'+str(initial_layer_id)+'_mbox_conf'])
-        net['L'+str(initial_layer_id)+'_mbox_priorbox'] = PriorBox(input_shape[0], min_width,
+        net['L'+str(initial_layer_id)+'_mbox_priorbox'] = PriorBox(net['input'].shape[1].value, min_width,
                             aspect_ratios=[2, 3],
                             variances=[0.1, 0.2],
                             name='L'+str(initial_layer_id)+'_mbox_priorbox')(x)
