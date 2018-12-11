@@ -55,7 +55,7 @@ def Concat(input, input2, net, basename):
     net['concat' + basename] =  Concatenate(name='concat' + basename, axis=2)([input, input2])
     return net['concat' + basename] 
 
-def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True):
+def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True, peak_detector=True):
     """ building U-net
     # input: input keras tensor
     # net: list for network layers (keras tensors)
@@ -83,10 +83,11 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True):
     for channel in channels:
         x = Conv1DBNRelu(x, net, '_f_'+str(initial_layer_id)+'_'+str(subid), channel)
         subid += 1
-    if len(structure) == 0:
-        return x
-    xx = x
+    # if len(structure) == 0:
+    #    return x # 最下層はここでリターン！
+    # xx = x
     if len(structure) > 0:
+        xx = x
         x = MaxPool1D(x, net, '_f_'+str(initial_layer_id))
         initial_layer_id +=1
         x = UNet_Builder(x, net, initial_layer_id, structure, u_net=u_net)
@@ -94,13 +95,15 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True):
         x = Upsample1D(x, net, '_r_'+str(initial_layer_id)+depth_label)
         if u_net:
             x = Concat(xx, x, net, '_r_'+str(initial_layer_id)+depth_label) 
-    subid = 1
-    for channel in reversed(channels):
-        x = Conv1DBNRelu(x, net, '_r_'+str(initial_layer_id)+'_'+str(subid)+depth_label, channel)
-        subid += 1        
+        subid = 1
+        for channel in reversed(channels):
+            x = Conv1DBNRelu(x, net, '_r_'+str(initial_layer_id)+'_'+str(subid)+depth_label, channel)
+            subid += 1
+    # ConvBNReLUを複数回済ませてリターンする直前（返値はその後Upsampleされる）のこの位置にLoc, Conf, Priorレイヤを設置
+    a = x.shape
     return x
 
-def MSChromUNet(input_shape, depth=0, u_net = True, num_classes=2):
+def MSChromUNet(input_shape, depth=0, u_net=True, peak_detector=True, num_classes=2):
     """SSD-like 1D architecture
     """
     net = {}
@@ -111,7 +114,7 @@ def MSChromUNet(input_shape, depth=0, u_net = True, num_classes=2):
     x = net['reshape1']
     structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
                 [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024]]
-    x = UNet_Builder(x, net, 1, structure, depth, u_net=u_net)
+    x = UNet_Builder(x, net, 1, structure, depth, u_net=u_net, peak_detector=peak_detector)
     x = Conv1DBNSigmoid(x, net, '_autoencoder', 1)
     net['autoencoder_flatten'] = Flatten(name='autoencoder_flatten')(x)
 
@@ -122,5 +125,5 @@ def MSChromUNet(input_shape, depth=0, u_net = True, num_classes=2):
 
 if __name__ == '__main__':
     input_shape = (1024, )
-    mymodel = MSChromUNet(input_shape, 8, False)
+    mymodel = MSChromUNet(input_shape, 8, u_net=True, peak_detector=True)
     print(mymodel.summary())
