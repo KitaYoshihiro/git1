@@ -180,16 +180,17 @@ class PriorBox(Layer):
         prior_boxes = np.concatenate((prior_boxes, variances), axis=1) # 作ったvalianceをconcatenateする shape: (priorboxのサイズ, 2+2)
 
         """priorsを保存する"""
-        # temp_priors = []
-        # if os.path.exists('priors_test.pkl'):
-        #     with open('priors_test.pkl', mode='rb') as f:
-        #         temp_priors = pickle.load(f)        
-        # if len(temp_priors) != 0:
-        #     temp_priors = np.concatenate((temp_priors, prior_boxes), axis=0)
-        # else:
-        #     temp_priors = prior_boxes
-        # with open('priors_test.pkl', mode='wb') as f:
-        #     pickle.dump(temp_priors, f)
+        filename = 'mschrom_unet_priors.pkl'
+        temp_priors = []
+        if os.path.exists(filename):
+            with open(filename, mode='rb') as f:
+                temp_priors = pickle.load(f)        
+        if len(temp_priors) != 0:
+            temp_priors = np.concatenate((temp_priors, prior_boxes), axis=0)
+        else:
+            temp_priors = prior_boxes
+        with open(filename, mode='wb') as f:
+            pickle.dump(temp_priors, f)
         """ここまで"""
 
         prior_boxes_tensor = K.expand_dims(K.variable(prior_boxes), 0) # バックエンドテンソルに変換（１次元追加）shape:TensorShape([Dimension(1), Dimension(54), Dimension(8)])
