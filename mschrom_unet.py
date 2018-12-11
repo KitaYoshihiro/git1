@@ -138,32 +138,32 @@ def MSChromUNet(input_shape, depth=0, u_net=True, autoencoder=False, num_classes
     # Gather Predictions
     if not autoencoder:
         net['mbox_loc'] = Concatenate(name='mbox_loc', axis=1)([
-                                net['L1_mbox_loc_flat'],
-                                net['L2_mbox_loc_flat'],
-                                net['L3_mbox_loc_flat'],
-                                net['L4_mbox_loc_flat'],
-                                net['L5_mbox_loc_flat'],
-                                net['L6_mbox_loc_flat'],
+                                net['L8_mbox_loc_flat'],
                                 net['L7_mbox_loc_flat'],
-                                net['L8_mbox_loc_flat']])
+                                net['L6_mbox_loc_flat'],
+                                net['L5_mbox_loc_flat'],
+                                net['L4_mbox_loc_flat'],
+                                net['L3_mbox_loc_flat'],
+                                net['L2_mbox_loc_flat'],
+                                net['L1_mbox_loc_flat']])
         net['mbox_conf'] = Concatenate(name='mbox_conf', axis=1)([
-                                net['L1_mbox_conf_flat'],
-                                net['L2_mbox_conf_flat'],
-                                net['L3_mbox_conf_flat'],
-                                net['L4_mbox_conf_flat'],
-                                net['L5_mbox_conf_flat'],
-                                net['L6_mbox_conf_flat'],
+                                net['L8_mbox_conf_flat'],
                                 net['L7_mbox_conf_flat'],
-                                net['L8_mbox_conf_flat']])
+                                net['L6_mbox_conf_flat'],
+                                net['L5_mbox_conf_flat'],
+                                net['L4_mbox_conf_flat'],
+                                net['L3_mbox_conf_flat'],
+                                net['L2_mbox_conf_flat'],
+                                net['L1_mbox_conf_flat']])
         net['mbox_priorbox'] = Concatenate(name='mbox_priorbox', axis=1)([
-                                net['L1_mbox_priorbox'],
-                                net['L2_mbox_priorbox'],
-                                net['L3_mbox_priorbox'],
-                                net['L4_mbox_priorbox'],
-                                net['L5_mbox_priorbox'],
-                                net['L6_mbox_priorbox'],
+                                net['L8_mbox_priorbox'],
                                 net['L7_mbox_priorbox'],
-                                net['L8_mbox_priorbox']])
+                                net['L6_mbox_priorbox'],
+                                net['L5_mbox_priorbox'],
+                                net['L4_mbox_priorbox'],
+                                net['L3_mbox_priorbox'],
+                                net['L2_mbox_priorbox'],
+                                net['L1_mbox_priorbox']])
         if hasattr(net['mbox_loc'], '_keras_shape'):
             num_boxes = net['mbox_loc']._keras_shape[-1] // 2
         elif hasattr(net['mbox_loc'], 'int_shape'):
