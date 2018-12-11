@@ -70,6 +70,9 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True):
         depth_label = '_d' + str(depth)
     else:
         depth_label = ''
+    
+    if u_net:
+        depth_label += 'u'
 
     while len(structure) > depth:
         structure.pop()
