@@ -44,8 +44,8 @@ class GdriveGenerator(object):
                 # 切り出し後の相対位置表現に変換
                 witdh_norm = 1024 / input_data_length # これは0.5に決まっいてる！！
                 peak_norm = locations_data[i]
-                peak_norm[:, :] -= trim_start_norm
-                peak_norm[:, :] /= witdh_norm
+                peak_norm[:, :2] -= trim_start_norm
+                peak_norm[:, :2] /= witdh_norm
                 left = ((peak_norm[:, 0] * 3 + peak_norm[:, 1]) / 4) >= 0
                 right = ((peak_norm[:, 0] + peak_norm[:, 1] * 3) / 4) <= 1
                 peak_norm_mask = left * right
@@ -56,7 +56,7 @@ class GdriveGenerator(object):
                     outdata = outdata[::-1]
                     peak_norm = 1 - peak_norm
                     peak_norm = peak_norm[:, ::-1]
-                peak_norm = self.bbox_util.assign_boxes(peak_norm)
+                peak_norm = self.bbox_util.assign_boxes(peak_norm) # ここで位置情報をpriorbox表現に変換している
                 locations.append(peak_norm)
                 # indata = indata / np.max(indata)
                 inputs.append(indata)
@@ -85,11 +85,11 @@ if __name__ == '__main__':
     #chroms = np.array(tr[0])
     #locations = np.array(tr[1])
     #print(chroms.shape)
-    with open('mschromnet_priors.pkl', mode='rb') as f:
+    with open('mschrom_unet_priors.pkl', mode='rb') as f:
         priors = pickle.load(f)
 
-    bbox_util = BBoxUtility(1, priors)
-    gen = GdriveGenerator(bbox_util, batch_size=50, train_data=tr, validate_data=tr)
+    bb_util = BBoxUtility(2, priors)
+    gen = GdriveGenerator(bb_util, batch_size=5, train_data=tr, validate_data=tr)
     g = gen.generate(train=True)
     a = next(g)
     # a = np.array(next(g))

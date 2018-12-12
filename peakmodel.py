@@ -127,7 +127,7 @@ class PeakModel:
             # poakpos_min, peakpos_maxを正規化
             NormalizedPeakPositions[i,0] = (peakpos_min + 0.5) / datapoints
             NormalizedPeakPositions[i,1] = (peakpos_max - 0.5) / datapoints
-            NormalizedPeakPositions[i,2] = 1
+            NormalizedPeakPositions[i,2] = 1 # ピークデータクラスを表す1をハードコード
 
         # パルスカウントシミュレーションデータを作成
         simulated = PeakModel.simulate(dwelltime, RefChrom)
