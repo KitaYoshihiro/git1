@@ -12,7 +12,6 @@ from keras.layers import Input
 from keras.layers import MaxPooling1D
 from keras.layers import UpSampling1D
 from keras.layers import BatchNormalization
-from keras.layers import Activation
 from keras.layers import merge
 from keras.layers import Reshape
 from keras.layers import ZeroPadding1D
@@ -20,6 +19,10 @@ from keras.models import Model
 
 from mschromnet_layers import PriorBox
 from mschromnet_layers import Normalize
+
+from mschromnet_utils import BBoxUtility
+from gdrivegenerator import GdriveGenerator
+import pickle
 
 def Conv1DBNRelu(input, net, basename, cn):
     """CNN1D
@@ -191,3 +194,22 @@ if __name__ == '__main__':
             print(L.name)
             L.trainable = False
     print(mymodel.summary())
+
+    # load weights
+    mymodel.load_weights('../wt.e012-0.53912.hdf5')
+    # perform prediction
+    
+    with open('mschrom_unet_priors.pkl', mode='rb') as f:
+        priors = pickle.load(f)
+    with open('sampledata.pkl', mode='rb') as f:
+        tr = pickle.load(f)
+
+    bbox_util = BBoxUtility(num_classes=2, priors=priors)
+    gen = GdriveGenerator(bbox_util=bbox_util, batch_size=1, train_data=tr, validate_data=tr)
+    g = gen.generate(train=False)
+    chrom, gt = next(g)
+
+    predictions = mymodel.predict(chrom, batch_size=1, verbose=1)
+    results = bbox_util.detection_out(predictions)
+
+    print(gt)
