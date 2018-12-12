@@ -103,7 +103,7 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True, a
     if not autoencoder:
         num_priors = 5
         channels_num = x.shape[1].value # レイヤの大きさを拾う（8～1024）
-        min_width = 1024//channels_num # それをPriorboxのmin_widthに使う
+        min_width = channels_num # それをPriorboxのmin_widthに使う
         net['L'+str(initial_layer_id)+'_mbox_loc'] = Conv1D(num_priors * 2, 3,
                             padding='same',
                             name='L'+str(initial_layer_id)+'_mbox_loc')(x)
