@@ -54,8 +54,8 @@ class GdriveGenerator(object):
                 if(random()<0.5):
                     indata = indata[::-1]
                     outdata = outdata[::-1]
-                    peak_norm = 1 - peak_norm
-                    peak_norm = peak_norm[:, ::-1]
+                    peak_norm[:,:2] = 1 - peak_norm[:,:2]
+                    peak_norm[:,:2] = peak_norm[:,:2][:,::-1]
                 peak_norm = self.bbox_util.assign_boxes(peak_norm) # ここで位置情報をpriorbox表現に変換している
                 locations.append(peak_norm)
                 # indata = indata / np.max(indata)
