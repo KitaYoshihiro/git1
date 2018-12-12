@@ -186,4 +186,8 @@ def MSChromUNet(input_shape, depth=0, u_net=True, autoencoder=False, num_classes
 if __name__ == '__main__':
     input_shape = (1024, )
     mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False)
+    for L in mymodel.layers:
+        if 'conv' in L.name:
+            print(L.name)
+            L.trainable = False
     print(mymodel.summary())
