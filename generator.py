@@ -56,10 +56,14 @@ if __name__ == '__main__':
     #                 min_peaknumber=10, max_peaknumber=20,
     #                 peak_dynamicrange=4, min_peakwidth=4,
     #                 max_peakwidth=50, spike_noise=False)
+    # gen = Generator(batch_size=batch_size, datapoints=2048, dwelltime=1,
+    #                 min_peaknumber=1, max_peaknumber=40,
+    #                 peak_dynamicrange=4, min_peakwidth=4,
+    #                 max_peakwidth=300, spike_noise=False)
     gen = Generator(batch_size=batch_size, datapoints=2048, dwelltime=1,
                     min_peaknumber=1, max_peaknumber=40,
-                    peak_dynamicrange=4, min_peakwidth=4,
-                    max_peakwidth=300, spike_noise=False)
+                    peak_dynamicrange=3, min_peakwidth=4,
+                    max_peakwidth=200, spike_noise=False)
     g = gen.generate(train=True)
     generated = next(g)
     chroms = np.array(generated[0:2])
@@ -68,7 +72,7 @@ if __name__ == '__main__':
     validate_batch = (chroms[:, train_size:, :], ranges[train_size:])
     # with open('sharp_peaks.pickle', mode='wb') as f:
     #     pickle.dump(train_batch, f)
-    with open('../trainsample2.pickle', mode='wb') as f:
+    with open('../trainsample3.pickle', mode='wb') as f:
         pickle.dump(train_batch, f)
-    with open('../validatesample2.pickle', mode='wb') as f:
+    with open('../validatesample3.pickle', mode='wb') as f:
         pickle.dump(validate_batch, f)
