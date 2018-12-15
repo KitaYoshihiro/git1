@@ -196,7 +196,7 @@ class PriorBox(Layer):
         prior_boxes = np.concatenate((prior_boxes, variances), axis=1) # 作ったvalianceをconcatenateする shape: (priorboxのサイズ, 2+2)
 
         """priorsを保存する"""
-        # filename = 'mschrom_unet_priors.pkl'
+        # filename = 'mschrom_unet_priors_d10.pkl'
         # temp_priors = []
         # if os.path.exists(filename):
         #     with open(filename, mode='rb') as f:
