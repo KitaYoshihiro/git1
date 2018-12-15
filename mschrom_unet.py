@@ -19,6 +19,7 @@ from keras.models import Model
 
 from mschromnet_layers import PriorBox
 from mschromnet_layers import Normalize
+from mschromnet_layers import MagnifyAndClip
 
 from mschromnet_utils import BBoxUtility
 from gdrivegenerator import GdriveGenerator
@@ -121,7 +122,7 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True, a
                             name='L'+str(initial_layer_id)+'_mbox_priorbox')(x)
     return x
 
-def MSChromUNet(input_shape, depth=0, u_net=True, autoencoder=False, num_classes=2):
+def MSChromUNet(input_shape, depth=0, u_net=True, autoencoder=False, magnify=False, num_classes=2):
     """SSD-like 1D architecture
     """
     net = {}
@@ -130,6 +131,9 @@ def MSChromUNet(input_shape, depth=0, u_net=True, autoencoder=False, num_classes
     net['input'] = input_tensor
     net['reshape1'] = Reshape((input_shape[0],1), name='reshape1')(net['input'])
     x = net['reshape1']
+    if magnify:
+        net['magnify1'] = MagnifyAndClip(name='magnify1')(x)
+        x = net['magnify1']
     structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
                 [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024]]
     x = UNet_Builder(x, net, 1, structure, depth, u_net=u_net, autoencoder=autoencoder)
@@ -188,7 +192,7 @@ def MSChromUNet(input_shape, depth=0, u_net=True, autoencoder=False, num_classes
 
 if __name__ == '__main__':
     input_shape = (1024, )
-    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False)
+    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False, magnify=True)
     for L in mymodel.layers:
         if 'conv' in L.name:
             print(L.name)

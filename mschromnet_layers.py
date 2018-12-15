@@ -9,6 +9,22 @@ import tensorflow as tf
 import pickle
 import os
 
+class MagnifyAndClip(Layer):
+    """Preprocess layer
+    """
+    def __init__(self, **kwargs):
+        super(MagnifyAndClip, self).__init__(**kwargs)    
+
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], input_shape[1], 4) # 1D なので x_min, x_max, variance_width, variance_scaleの４つ
+
+    def call(self, x, mask=None):
+        x1 = K.clip(x * 10, 0, 1)
+        x2 = K.clip(x * 100, 0, 1)
+        x3 = K.clip(x * 1000, 0, 1) 
+        output = K.concatenate((x, x1, x2, x3))
+        return output
+
 class Normalize(Layer):
     """Normalization layer as described in ParseNet paper.
 
