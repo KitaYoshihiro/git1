@@ -134,14 +134,14 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
     if magnify:
         net['magnify1'] = MagnifyAndClip(name='magnify1')(x)
         x = net['magnify1']
-        net['conv0'] = Conv1D(256, 1, padding='same', name='conv0')(x)
-        x = net['conv0']
-    structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
-                [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024],
-                [1024,1024,1024],[1024,1024,1024]]
-    # structure = [[256,64],[64,64,64],[64,64,64],[128,128,128],
-    #             [128,128,128],[256,256,256],[256,256,256],[512,512,512],
-    #             [512,512,512],[512,512,512]]
+        # net['conv0'] = Conv1D(256, 1, padding='same', name='conv0')(x)
+        # x = net['conv0']
+    # structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
+    #             [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024],
+    #             [1024,1024,1024],[1024,1024,1024]]
+    structure = [[256,64],[64,64,64],[64,64,64],[128,128,128],
+                [128,128,128],[256,256,256],[256,256,256],[512,512,512],
+                [512,512,512],[512,512,512]]
     x = UNet_Builder(x, net, 1, structure, depth, u_net=u_net, autoencoder=autoencoder)
 
     # Autoencoder
@@ -205,10 +205,10 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
 if __name__ == '__main__':
     input_shape = (1024, )
     mymodel = MSChromUNet(input_shape, 10, u_net=True, autoencoder=False, magnify=True)
-    for L in mymodel.layers:
-        if 'conv' in L.name:
-            print(L.name)
-            L.trainable = False
+    # for L in mymodel.layers:
+    #     if 'conv' in L.name:
+    #         print(L.name)
+    #         L.trainable = False
     print(mymodel.summary())
 
     # load weights
