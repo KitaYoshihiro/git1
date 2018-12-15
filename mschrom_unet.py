@@ -59,7 +59,7 @@ def Concat(input, input2, net, basename):
     net['concat' + basename] =  Concatenate(name='concat' + basename, axis=2)([input, input2])
     return net['concat' + basename] 
 
-def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True, autoencoder=False):
+def UNet_Builder(input, net, initial_layer_id, structure, depth=10, u_net=True, autoencoder=False):
     """ building U-net
     # input: input keras tensor
     # net: list for network layers (keras tensors)
@@ -122,7 +122,7 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=0, u_net=True, a
                             name='L'+str(initial_layer_id)+'_mbox_priorbox')(x)
     return x
 
-def MSChromUNet(input_shape, depth=0, u_net=True, autoencoder=False, magnify=False, num_classes=2):
+def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=False, num_classes=2):
     """SSD-like 1D architecture
     """
     net = {}
@@ -135,7 +135,8 @@ def MSChromUNet(input_shape, depth=0, u_net=True, autoencoder=False, magnify=Fal
         net['magnify1'] = MagnifyAndClip(name='magnify1')(x)
         x = net['magnify1']
     structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
-                [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024]]
+                [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024],
+                [1024,1024,1024],[1024,1024,1024]]
     x = UNet_Builder(x, net, 1, structure, depth, u_net=u_net, autoencoder=autoencoder)
 
     # Autoencoder
