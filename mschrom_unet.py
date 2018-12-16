@@ -140,7 +140,7 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
     #             [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024],
     #             [1024,1024,1024],[1024,1024,1024]]
     structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
-                [128,128,128],[256,256,256],[256,256,256],[512,512,512]#,
+                [128,128,128],[256,256,256],[256,256,256],[512,512,512]]#,
                 #[512,512,512],[512,512,512]]
     x = UNet_Builder(x, net, 1, structure, depth, u_net=u_net, autoencoder=autoencoder)
 
@@ -204,7 +204,7 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
 
 if __name__ == '__main__':
     input_shape = (1024, )
-    mymodel = MSChromUNet(input_shape, 10, u_net=True, autoencoder=False, magnify=True)
+    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False, magnify=False)
     # for L in mymodel.layers:
     #     if 'conv' in L.name:
     #         print(L.name)
