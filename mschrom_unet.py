@@ -140,8 +140,8 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
     #             [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024],
     #             [1024,1024,1024],[1024,1024,1024]]
     structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
-                [128,128,128],[256,256,256],[256,256,256],[512,512,512],
-                [512,512,512],[512,512,512]]
+                [128,128,128],[256,256,256],[256,256,256],[512,512,512]#,
+                #[512,512,512],[512,512,512]]
     x = UNet_Builder(x, net, 1, structure, depth, u_net=u_net, autoencoder=autoencoder)
 
     # Autoencoder
@@ -151,8 +151,8 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
     # Gather Predictions
     if not autoencoder:
         net['mbox_loc'] = Concatenate(name='mbox_loc', axis=1)([
-                                net['L10_mbox_loc_flat'],
-                                net['L9_mbox_loc_flat'],
+                                # net['L10_mbox_loc_flat'],
+                                # net['L9_mbox_loc_flat'],
                                 net['L8_mbox_loc_flat'],
                                 net['L7_mbox_loc_flat'],
                                 net['L6_mbox_loc_flat'],
@@ -162,8 +162,8 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
                                 net['L2_mbox_loc_flat'],
                                 net['L1_mbox_loc_flat']])
         net['mbox_conf'] = Concatenate(name='mbox_conf', axis=1)([
-                                net['L10_mbox_conf_flat'],
-                                net['L9_mbox_conf_flat'],
+                                # net['L10_mbox_conf_flat'],
+                                # net['L9_mbox_conf_flat'],
                                 net['L8_mbox_conf_flat'],
                                 net['L7_mbox_conf_flat'],
                                 net['L6_mbox_conf_flat'],
@@ -173,8 +173,8 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
                                 net['L2_mbox_conf_flat'],
                                 net['L1_mbox_conf_flat']])
         net['mbox_priorbox'] = Concatenate(name='mbox_priorbox', axis=1)([
-                                net['L10_mbox_priorbox'],
-                                net['L9_mbox_priorbox'],
+                                # net['L10_mbox_priorbox'],
+                                # net['L9_mbox_priorbox'],
                                 net['L8_mbox_priorbox'],
                                 net['L7_mbox_priorbox'],
                                 net['L6_mbox_priorbox'],
