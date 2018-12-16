@@ -20,6 +20,7 @@ from keras.models import Model
 from mschromnet_layers import PriorBox
 from mschromnet_layers import Normalize
 from mschromnet_layers import MagnifyAndClip
+from mschromnet_layers import LogTransform
 
 from mschromnet_utils import BBoxUtility
 from gdrivegenerator import GdriveGenerator
@@ -122,7 +123,7 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=10, u_net=True, 
                             name='L'+str(initial_layer_id)+'_mbox_priorbox')(x)
     return x
 
-def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=False, num_classes=2):
+def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=False, logtransform=False, num_classes=2):
     """SSD-like 1D architecture
     """
     net = {}
@@ -136,6 +137,9 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
         x = net['magnify1']
         net['conv0'] = Conv1D(64, 1, padding='same', name='conv0')(x)
         x = net['conv0']
+    if logtransform:
+        net['logtransform1'] = LogTransform(name='logtransform1', scale=7)(x)
+        x = net['logtransform1']
     # structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
     #             [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024],
     #             [1024,1024,1024],[1024,1024,1024]]
@@ -204,7 +208,7 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
 
 if __name__ == '__main__':
     input_shape = (1024, )
-    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False, magnify=False)
+    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False, magnify=False, logtransform=True)
     # for L in mymodel.layers:
     #     if 'conv' in L.name:
     #         print(L.name)

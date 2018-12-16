@@ -25,6 +25,23 @@ class MagnifyAndClip(Layer):
         output = K.concatenate((x, x1, x2, x3))
         return output
 
+class LogTransform(Layer):
+    """Preprocess layer
+    """
+    def __init__(self, scale, **kwargs):
+        self.epsilon = 10 ** (-scale)
+        super(LogTransform, self).__init__(**kwargs)    
+
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], input_shape[1], 1)
+
+    def call(self, x, mask=None):
+        x1 = x + self.epsilon
+        x2 = K.log(x1)
+        output = x2
+        return output
+
+
 class Normalize(Layer):
     """Normalization layer as described in ParseNet paper.
 
