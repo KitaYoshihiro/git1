@@ -1,7 +1,7 @@
 """Keras implementation of SSD."""
 import numpy as np
 import keras.backend as K
-import cntk as C
+# import cntk as C
 from keras.layers import Activation
 from keras.layers import AtrousConvolution1D
 from keras.layers import Conv1D
