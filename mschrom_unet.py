@@ -1,6 +1,7 @@
 """Keras implementation of SSD."""
-
+import numpy as np
 import keras.backend as K
+import cntk as C
 from keras.layers import Activation
 from keras.layers import AtrousConvolution1D
 from keras.layers import Conv1D
@@ -107,7 +108,7 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=10, u_net=True, 
     # ConvBNReLUを複数回済ませてリターンする直前（返値はその後Upsampleされる）のこの位置にLoc, Conf, Priorレイヤを設置
     if not autoencoder:
         num_priors = 5
-        channels_num = x.shape[1].value # レイヤの大きさを拾う（8～1024）
+        channels_num = x._keras_shape[1] # レイヤの大きさを拾う（8～1024）
         min_width = 1024//channels_num # それをPriorboxのmin_widthに使う
         net['L'+str(initial_layer_id)+'_mbox_loc'] = Conv1D(num_priors * 2, 3,
                             padding='same',
@@ -117,7 +118,7 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=10, u_net=True, 
                             padding='same',
                             name='L'+str(initial_layer_id)+'_mbox_conf')(x)
         net['L'+str(initial_layer_id)+'_mbox_conf_flat'] = Flatten(name='L'+str(initial_layer_id)+'_mbox_conf_flat')(net['L'+str(initial_layer_id)+'_mbox_conf'])
-        net['L'+str(initial_layer_id)+'_mbox_priorbox'] = PriorBox(net['input'].shape[1].value, min_width,
+        net['L'+str(initial_layer_id)+'_mbox_priorbox'] = PriorBox(net['input']._keras_shape[1], min_width,
                             aspect_ratios=[2, 3],
                             variances=[0.1, 0.2],
                             name='L'+str(initial_layer_id)+'_mbox_priorbox')(x)
@@ -197,9 +198,17 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
                                 name='mbox_conf_logits')(net['mbox_conf'])
         net['mbox_conf'] = Activation('softmax',
                                 name='mbox_conf_final')(net['mbox_conf'])
+
+        # for adjustment for CNTK
+        #net['mbox_priorbox'] = Reshape((-1, 4), name = 'mbox_priorbox_final')(net['mbox_priorbox'])
+        # for tensorflow
         net['predictions'] = Concatenate(name='predictions', axis=2)([net['mbox_loc'],
                                 net['mbox_conf'],
                                 net['mbox_priorbox']])
+        # # for CNTK
+        # net['predictions'] = Concatenate(name='predictions', axis=1)([net['mbox_loc'],
+        #                         net['mbox_conf'],
+        #                         net['mbox_priorbox']])
     else:
         net['predictions'] = net['autoencoder_flatten']
 
@@ -208,28 +217,39 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
 
 if __name__ == '__main__':
     input_shape = (1024, )
-    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False, magnify=False, logtransform=True)
+    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False, magnify=False, logtransform=False)
     # for L in mymodel.layers:
     #     if 'conv' in L.name:
     #         print(L.name)
     #         L.trainable = False
     print(mymodel.summary())
 
+    # ksess = K.get_session()
+    # print(ksess)
+    # K.set_learning_phase(0)
+    # graph = ksess.graph
+    # kgraph = graph.as_graph_def()
+    # print(kgraph)
+
     # load weights
-    # mymodel.load_weights('../wt.e012-0.53912.hdf5')
-    # perform prediction
+    mymodel.load_weights('../wt.e014-0.41717_d8u_detector_allweights_batch32.hdf5', by_name=True)
     
-    # with open('mschrom_unet_priors_d10.pkl', mode='rb') as f:
+    # mymodel.save('../my_tf_model.h5')
+    # C.combine(mymodel.outputs).save('../my_tf_model.dnn')
+    
+    # # load priors    
+    # with open('mschrom_unet_priors.pkl', mode='rb') as f:
     #     priors = pickle.load(f)
+    # # load data
     # with open('../sharp_peaks.pickle', mode='rb') as f:
     #     tr = pickle.load(f)
 
     # bbox_util = BBoxUtility(num_classes=2, priors=priors)
-    # gen = GdriveGenerator(bbox_util=bbox_util, batch_size=1, train_data=tr, validate_data=tr)
-    # g = gen.generate(train=False)
+    # gen = GdriveGenerator(bbox_util=bbox_util, batch_size=256, train_data=tr, validate_data=tr)
+    # g = gen.generate(train=False, autoencoder=False)
     # chrom, gt = next(g)
 
     # predictions = mymodel.predict(chrom, batch_size=1, verbose=1)
     # results = bbox_util.detection_out(predictions)
-
-    # print(gt)
+    # results2 = np.array(results)
+    # print(results2.shape)

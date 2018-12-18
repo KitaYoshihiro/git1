@@ -63,9 +63,9 @@ class GdriveGenerator(object):
                 # outdata = outdata / np.max(outdata)
                 targets.append(outdata)
                 if len(targets) == self.batch_size:
-                    tmp_locations = np.array(locations)
-                    tmp_inp = np.array(inputs)
-                    tmp_targets = np.array(targets)
+                    tmp_locations = np.array(locations, dtype='float32')
+                    tmp_inp = np.array(inputs, dtype='float32')
+                    tmp_targets = np.array(targets, dtype='float32')
                     locations = []
                     inputs = []
                     targets = []
