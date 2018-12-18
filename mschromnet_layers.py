@@ -5,7 +5,7 @@ from keras.engine.topology import InputSpec
 from keras.engine.topology import Layer
 import numpy as np
 import tensorflow as tf
-import cntk as C
+# import cntk as C
 
 import pickle
 import os
@@ -283,8 +283,8 @@ class PriorBox(Layer):
             #init_parameter = C.parameter(shape=K.shape(prior_boxes), init=prior_boxes)
             # batch_axis = C.Axis.default_batch_axis()
             # input_dynamic_axes = [batch_axis]
-            prior_boxes_constants = C.Constant(self.prior_boxes)
-            prior_boxes_constants2 = C.reconcile_dynamic_axes(prior_boxes_constants, dynamic_axes_as=x)
+            # prior_boxes_constants = C.Constant(self.prior_boxes)
+            # prior_boxes_constants2 = C.reconcile_dynamic_axes(prior_boxes_constants, dynamic_axes_as=x)
 
             # ph = C.ops.placeholder(K.shape(prior_boxes), dynamic_axes=C.Axis.default_batch_axis())
             # zeros = C.zeros_like(x)
