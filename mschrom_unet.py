@@ -257,8 +257,8 @@ if __name__ == '__main__':
     decay = 0.0005
     sgd = keras.optimizers.SGD(lr=base_lr, decay=decay, momentum=momentum, nesterov=True)
 
-    from mschromnet_training import MultiboxLoss2 
-    mymodel.compile(optimizer=sgd, loss=MultiboxLoss2(num_classes, neg_pos_ratio=3.0).compute_loss)
+    from mschromnet_training import MultiboxLoss 
+    mymodel.compile(optimizer=sgd, loss=MultiboxLoss(num_classes, neg_pos_ratio=3.0).compute_loss)
     gen.batch_size = 4
     import multiprocessing
     process_count = multiprocessing.cpu_count() - 1

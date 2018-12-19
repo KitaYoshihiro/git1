@@ -1,7 +1,7 @@
 """Some utils for MSChromNet."""
 
 import numpy as np
-import tensorflow as tf
+#import tensorflow as tf
 
 class NonMaxSuppression(object):
     def __init__(self, max_output_size, iou_threshold):
@@ -75,13 +75,13 @@ class BBoxUtility(object):
         self._nms_thresh = nms_thresh
         self._top_k = top_k
         # self.boxes = tf.placeholder(dtype='float32', shape=(None, 4))
-        self.boxes = tf.placeholder(dtype='float32', shape=(None, 2))
-        self.scores = tf.placeholder(dtype='float32', shape=(None,))
+        # self.boxes = tf.placeholder(dtype='float32', shape=(None, 2))
+        # self.scores = tf.placeholder(dtype='float32', shape=(None,))
         # self.nms = tf.image.non_max_suppression(self.boxes, self.scores,
         #                                         self._top_k,
         #                                         iou_threshold=self._nms_thresh)
         self.nms = NonMaxSuppression(self._top_k, self._nms_thresh)
-        self.sess = tf.Session(config=tf.ConfigProto(device_count={'GPU': 0}))
+        # self.sess = tf.Session(config=tf.ConfigProto(device_count={'GPU': 0}))
 
     @property
     def nms_thresh(self):

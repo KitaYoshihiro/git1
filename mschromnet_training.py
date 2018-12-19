@@ -258,8 +258,7 @@ class MultiboxLoss(object):
         has_min = K.backend.cast(K.backend.any(pos_num_neg_mask), dtype='float32')
         # num_neg = tf.concat(axis=0, values=[num_neg, [(1 - has_min) * self.negatives_for_hard]])
         num_neg = K.backend.concatenate((num_neg, [(1 - has_min) * self.negatives_for_hard]), axis=0)
-        
-        
+                
         num_neg_batch = tf.reduce_min(tf.boolean_mask(num_neg, tf.greater(num_neg, 0)))
         # num_neg_batch = tf.to_int32(num_neg_batch)
 
@@ -269,15 +268,14 @@ class MultiboxLoss(object):
         # confs_end = confs_start + self.num_classes - 1
         confs_start = 2 + self.background_label_id + 1
         confs_end = confs_start + self.num_classes - 1
-        max_confs = tf.reduce_max(y_pred[:, :, confs_start:confs_end],
-                                  axis=2)
+        max_confs = K.backend.max(y_pred[:, :, confs_start:confs_end], axis=2)
         # _, indices = K.backend.top_
         _, indices = tf.nn.top_k(max_confs * (1 - y_true[:, :, -4]),
                                  k=num_neg_batch)
-        batch_idx = tf.expand_dims(tf.range(0, batch_size), 1)
-        batch_idx = tf.tile(batch_idx, (1, num_neg_batch))
-        full_indices = (tf.reshape(batch_idx, [-1]) * tf.to_int32(num_boxes) +
-                        tf.reshape(indices, [-1]))
+        batch_idx = K.backend.expand_dims(K.backend.arange(0, batch_size), 1)
+        # batch_idx = tf.tile(batch_idx, (1, num_neg_batch))
+        batch_idx = K.backend.tile(batch_idx, (1, num_neg_batch))
+        full_indices = (tf.reshape(batch_idx, [-1]) * tf.to_int32(num_boxes) + tf.reshape(indices, [-1]))
         neg_conf_loss = tf.gather(tf.reshape(conf_loss, [-1]),
                                   full_indices)
         neg_conf_loss = tf.reshape(neg_conf_loss,
