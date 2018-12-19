@@ -2,6 +2,7 @@
 import numpy as np
 import keras.backend as K
 # import cntk as C
+import keras
 from keras.layers import Activation
 from keras.layers import AtrousConvolution1D
 from keras.layers import Conv1D
@@ -237,17 +238,35 @@ if __name__ == '__main__':
     # mymodel.save('../my_tf_model.h5')
     # C.combine(mymodel.outputs).save('../my_tf_model.dnn')
     
-    # # load priors    
-    # with open('mschrom_unet_priors.pkl', mode='rb') as f:
-    #     priors = pickle.load(f)
-    # # load data
-    # with open('../sharp_peaks.pickle', mode='rb') as f:
-    #     tr = pickle.load(f)
-
-    # bbox_util = BBoxUtility(num_classes=2, priors=priors)
-    # gen = GdriveGenerator(bbox_util=bbox_util, batch_size=256, train_data=tr, validate_data=tr)
+    # load priors    
+    with open('mschrom_unet_priors.pkl', mode='rb') as f:
+        priors = pickle.load(f)
+    # load data
+    with open('../sharp_peaks.pickle', mode='rb') as f:
+        tr = pickle.load(f)
+    num_classes = 2
+    bbox_util = BBoxUtility(num_classes=num_classes, priors=priors)
+    gen = GdriveGenerator(bbox_util=bbox_util, batch_size=32, train_data=tr, validate_data=tr)
     # g = gen.generate(train=False, autoencoder=False)
     # chrom, gt = next(g)
+
+    def schedule(epoch, decay=0.9):
+        return base_lr * decay**(epoch)
+    base_lr = 1e-3
+    momentum = 0.9
+    decay = 0.0005
+    sgd = keras.optimizers.SGD(lr=base_lr, decay=decay, momentum=momentum, nesterov=True)
+
+    from mschromnet_training import MultiboxLoss2 
+    mymodel.compile(optimizer=sgd, loss=MultiboxLoss2(num_classes, neg_pos_ratio=3.0).compute_loss)
+    gen.batch_size = 4
+    import multiprocessing
+    process_count = multiprocessing.cpu_count() - 1
+    nb_epoch = 300
+    callbacks = [keras.callbacks.LearningRateScheduler(schedule)]
+    history = mymodel.fit_generator(gen.generate(True, autoencoder=False), steps_per_epoch=32, epochs=nb_epoch, verbose=1,
+                              callbacks=callbacks, validation_data=gen.generate(False, autoencoder=False), validation_steps=2,
+                              workers=process_count, use_multiprocessing=True)
 
     # predictions = mymodel.predict(chrom, batch_size=1, verbose=1)
     # results = bbox_util.detection_out(predictions)
