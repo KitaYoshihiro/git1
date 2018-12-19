@@ -4,7 +4,7 @@ import tensorflow as tf
 import keras as K
 
 
-class MultiboxLoss(object):
+class MultiboxLoss_Original(object):
     """Multibox loss with some helper functions.
 
     # Arguments
@@ -146,7 +146,7 @@ class MultiboxLoss(object):
         total_loss += (self.alpha * pos_loc_loss) / num_pos
         return total_loss
 
-class MultiboxLoss2(object):
+class MultiboxLoss(object):
     """Multibox loss with some helper functions.
     # Arguments
         num_classes: Number of classes including background.
