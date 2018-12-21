@@ -218,19 +218,19 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
 
 if __name__ == '__main__':
     input_shape = (1024, )
-    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False, magnify=False, logtransform=False)
+    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=True, magnify=False, logtransform=False)
     # for L in mymodel.layers:
     #     if 'conv' in L.name:
     #         print(L.name)
     #         L.trainable = False
     print(mymodel.summary())
 
-    # ksess = K.get_session()
-    # print(ksess)
-    # K.set_learning_phase(0)
-    # graph = ksess.graph
-    # kgraph = graph.as_graph_def()
-    # print(kgraph)
+    ksess = K.get_session()
+    print(ksess)
+    K.set_learning_phase(0)
+    graph = ksess.graph
+    kgraph = graph.as_graph_def()
+    print(kgraph)
 
     # load weights
     mymodel.load_weights('../wt.e014-0.41717_d8u_detector_allweights_batch32.hdf5', by_name=True)
@@ -246,9 +246,13 @@ if __name__ == '__main__':
         tr = pickle.load(f)
     num_classes = 2
     bbox_util = BBoxUtility(num_classes=num_classes, priors=priors)
-    gen = GdriveGenerator(bbox_util=bbox_util, batch_size=32, train_data=tr, validate_data=tr)
-    # g = gen.generate(train=False, autoencoder=False)
-    # chrom, gt = next(g)
+    gen = GdriveGenerator(bbox_util=bbox_util, batch_size=128, train_data=tr, validate_data=tr)
+    g = gen.generate(train=False, autoencoder=False)
+    chrom, gt = next(g)
+
+    import winmltools
+    # model = winmltools.convert_keras(mymodel, 7, name='mymodel')
+    model = winmltools.convert_tensorflow(graph, 7)
 
     def schedule(epoch, decay=0.9):
         return base_lr * decay**(epoch)
@@ -257,18 +261,18 @@ if __name__ == '__main__':
     decay = 0.0005
     sgd = keras.optimizers.SGD(lr=base_lr, decay=decay, momentum=momentum, nesterov=True)
 
-    from mschromnet_training import MultiboxLoss 
-    mymodel.compile(optimizer=sgd, loss=MultiboxLoss(num_classes, neg_pos_ratio=3.0).compute_loss)
-    gen.batch_size = 4
-    import multiprocessing
-    process_count = multiprocessing.cpu_count() - 1
-    nb_epoch = 300
-    callbacks = [keras.callbacks.LearningRateScheduler(schedule)]
-    history = mymodel.fit_generator(gen.generate(True, autoencoder=False), steps_per_epoch=32, epochs=nb_epoch, verbose=1,
-                              callbacks=callbacks, validation_data=gen.generate(False, autoencoder=False), validation_steps=2,
-                              workers=process_count, use_multiprocessing=True)
+    # from mschromnet_training import MultiboxLoss 
+    # mymodel.compile(optimizer=sgd, loss=MultiboxLoss(num_classes, neg_pos_ratio=3.0).compute_loss)
+    # gen.batch_size = 4
+    # import multiprocessing
+    # process_count = multiprocessing.cpu_count() - 1
+    # nb_epoch = 300
+    # callbacks = [keras.callbacks.LearningRateScheduler(schedule)]
+    # history = mymodel.fit_generator(gen.generate(True, autoencoder=False), steps_per_epoch=32, epochs=nb_epoch, verbose=1,
+    #                           callbacks=callbacks, validation_data=gen.generate(False, autoencoder=False), validation_steps=2,
+    #                           workers=process_count, use_multiprocessing=True)
 
-    # predictions = mymodel.predict(chrom, batch_size=1, verbose=1)
+    predictions = mymodel.predict(chrom, batch_size=1, verbose=1)
     # results = bbox_util.detection_out(predictions)
-    # results2 = np.array(results)
-    # print(results2.shape)
+    results2 = np.array(results)
+    print(results2.shape)
