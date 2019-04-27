@@ -1,7 +1,8 @@
 """Keras implementation of SSD."""
 import numpy as np
 import keras.backend as K
-# import cntk as C
+if K.backend() == 'cntk':
+    import cntk as C
 import keras
 from keras.layers import Activation
 from keras.layers import AtrousConvolution1D
@@ -166,7 +167,8 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
                                 net['L4_mbox_loc_flat'],
                                 net['L3_mbox_loc_flat'],
                                 net['L2_mbox_loc_flat'],
-                                net['L1_mbox_loc_flat']])
+                                net['L1_mbox_loc_flat']
+                                ])
         net['mbox_conf'] = Concatenate(name='mbox_conf', axis=1)([
                                 # net['L10_mbox_conf_flat'],
                                 # net['L9_mbox_conf_flat'],
@@ -177,7 +179,8 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
                                 net['L4_mbox_conf_flat'],
                                 net['L3_mbox_conf_flat'],
                                 net['L2_mbox_conf_flat'],
-                                net['L1_mbox_conf_flat']])
+                                net['L1_mbox_conf_flat']
+                                ])
         net['mbox_priorbox'] = Concatenate(name='mbox_priorbox', axis=1)([
                                 # net['L10_mbox_priorbox'],
                                 # net['L9_mbox_priorbox'],
@@ -188,7 +191,8 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
                                 net['L4_mbox_priorbox'],
                                 net['L3_mbox_priorbox'],
                                 net['L2_mbox_priorbox'],
-                                net['L1_mbox_priorbox']])
+                                net['L1_mbox_priorbox']
+                                ])
         if hasattr(net['mbox_loc'], '_keras_shape'):
             num_boxes = net['mbox_loc']._keras_shape[-1] // 2
         elif hasattr(net['mbox_loc'], 'int_shape'):
@@ -204,8 +208,8 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
         #net['mbox_priorbox'] = Reshape((-1, 4), name = 'mbox_priorbox_final')(net['mbox_priorbox'])
         # for tensorflow
         net['predictions'] = Concatenate(name='predictions', axis=2)([net['mbox_loc'],
-                                net['mbox_conf'],
-                                net['mbox_priorbox']])
+                                net['mbox_conf']]) #,
+                                #net['mbox_priorbox']])
         # # for CNTK
         # net['predictions'] = Concatenate(name='predictions', axis=1)([net['mbox_loc'],
         #                         net['mbox_conf'],
@@ -218,25 +222,25 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
 
 if __name__ == '__main__':
     input_shape = (1024, )
-    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=True, magnify=False, logtransform=False)
+    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False, magnify=False, logtransform=False)
     # for L in mymodel.layers:
     #     if 'conv' in L.name:
     #         print(L.name)
     #         L.trainable = False
     print(mymodel.summary())
 
-    ksess = K.get_session()
-    print(ksess)
-    K.set_learning_phase(0)
-    graph = ksess.graph
-    kgraph = graph.as_graph_def()
-    print(kgraph)
+    # ksess = K.get_session()
+    # print(ksess)
+    # K.set_learning_phase(0)
+    # graph = ksess.graph
+    # kgraph = graph.as_graph_def()
+    # print(kgraph)
 
     # load weights
     mymodel.load_weights('../wt.e014-0.41717_d8u_detector_allweights_batch32.hdf5', by_name=True)
     
     # mymodel.save('../my_tf_model.h5')
-    # C.combine(mymodel.outputs).save('../my_tf_model.dnn')
+    C.combine(mymodel.outputs).save('../unet_predictor_d8_wo_d123456out.dnn')
     
     # load priors    
     with open('mschrom_unet_priors.pkl', mode='rb') as f:
