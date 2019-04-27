@@ -221,8 +221,8 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
     return model
 
 if __name__ == '__main__':
-    input_shape = (1024, )
-    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False, magnify=False, logtransform=False)
+    input_shape = (4096, )
+    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=True, magnify=False, logtransform=False)
     # for L in mymodel.layers:
     #     if 'conv' in L.name:
     #         print(L.name)
