@@ -63,7 +63,7 @@ def Concat(input, input2, net, basename):
     net['concat' + basename] =  Concatenate(name='concat' + basename, axis=2)([input, input2])
     return net['concat' + basename] 
 
-def UNet_Builder(input, net, initial_layer_id, structure, depth=10, u_net=True, autoencoder=False):
+def UNet_Builder(input, net, initial_layer_id, structure, depth=20, u_net=True, autoencoder=False):
     """ building U-net
     # input: input keras tensor
     # net: list for network layers (keras tensors)
@@ -98,7 +98,7 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=10, u_net=True, 
         xx = x
         x = MaxPool1D(x, net, '_f_'+str(initial_layer_id))
         initial_layer_id +=1
-        x = UNet_Builder(x, net, initial_layer_id, structure, u_net=u_net)
+        x = UNet_Builder(x, net, initial_layer_id, structure, u_net=u_net, autoencoder=autoencoder)
         initial_layer_id -=1
         x = Upsample1D(x, net, '_r_'+str(initial_layer_id)+depth_label)
         if u_net:
@@ -126,7 +126,7 @@ def UNet_Builder(input, net, initial_layer_id, structure, depth=10, u_net=True, 
                             name='L'+str(initial_layer_id)+'_mbox_priorbox')(x)
     return x
 
-def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=False, logtransform=False, num_classes=2):
+def MSChromUNet(input_shape, depth=18, u_net=True, autoencoder=False, magnify=False, logtransform=False, num_classes=2):
     """SSD-like 1D architecture
     """
     net = {}
@@ -143,9 +143,15 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
     if logtransform:
         net['logtransform1'] = LogTransform(name='logtransform1', scale=7)(x)
         x = net['logtransform1']
+    # structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
+    #             [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024]]#,
+    #             #[1024,1024,1024],[1024,1024,1024]]
     structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
-                [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024]]#,
-                #[1024,1024,1024],[1024,1024,1024]]
+                [256,256,256],[512,512,512],[1024,1024,1024],[1024,1024,1024],
+                [1024,1024,1024],[1024,1024,1024],[1024,1024,1024],[1024,1024,1024],
+                [1024,1024,1024],[1024,1024,1024],[1024,1024,1024],[1024,1024,1024],
+                [1024,1024,1024],[1024,1024,1024],[1024,1024,1024],[1024,1024,1024],
+                [1024,1024,1024],[1024,1024,1024],[1024,1024,1024],[1024,1024,1024]]
     # structure = [[64,64],[64,64,64],[64,64,64],[128,128,128],
     #             [128,128,128],[256,256,256],[256,256,256],[512,512,512],
     #             [512,512,512],[512,512,512]]
@@ -221,8 +227,8 @@ def MSChromUNet(input_shape, depth=10, u_net=True, autoencoder=False, magnify=Fa
     return model
 
 if __name__ == '__main__':
-    input_shape = (4096, )
-    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=True, magnify=False, logtransform=False)
+    input_shape = (1048576, )
+    mymodel = MSChromUNet(input_shape, 18, u_net=False, autoencoder=True, magnify=False, logtransform=False)
     # for L in mymodel.layers:
     #     if 'conv' in L.name:
     #         print(L.name)
