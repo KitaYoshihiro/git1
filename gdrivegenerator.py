@@ -38,7 +38,7 @@ class GdriveGenerator(object):
                 index_maxheight = np.argmax(input_data[i])
                 #index = randint(1024) 
                 #index = randint(1024)で生成したindexをそのまま使うとheightの最高値（1.0）を区間に含まないかもしれない
-                index = randint(max(0, index_maxheight-1023), min(1024, index_maxheight))
+                index = randint(max(0, index_maxheight-1023), min(1024 + 1, index_maxheight + 1))
                 indata = input_data[i][index:index+1024]
                 outdata = output_data[i][index:index+1024]
                 # 切り出しインデクスを normalizeした位置表現にする（切り出し前の全長における相対位置:0～1）
