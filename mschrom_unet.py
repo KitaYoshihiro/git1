@@ -280,7 +280,12 @@ if __name__ == '__main__':
     #                           callbacks=callbacks, validation_data=gen.generate(False, autoencoder=False), validation_steps=2,
     #                           workers=process_count, use_multiprocessing=True)
 
-    predictions = mymodel.predict(chrom, batch_size=1, verbose=1)
+
+    with open('MRMChroms.pickle', mode='rb') as f:
+        mrmchroms = pickle.load(f)
+
+    #predictions = mymodel.predict(chrom, batch_size=1, verbose=1)
+    predictions = mymodel.predict(mrmchroms, batch_size=1, verbose=1)
     results = bbox_util.detection_out(predictions)
     results2 = np.array(results)
     print(results2.shape)
