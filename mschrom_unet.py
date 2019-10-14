@@ -213,9 +213,7 @@ def MSChromUNet(input_shape, depth=18, u_net=True, autoencoder=False, magnify=Fa
         # for adjustment for CNTK
         #net['mbox_priorbox'] = Reshape((-1, 4), name = 'mbox_priorbox_final')(net['mbox_priorbox'])
         # for tensorflow
-        net['predictions'] = Concatenate(name='predictions', axis=2)([net['mbox_loc'],
-                                net['mbox_conf']]) #,
-                                #net['mbox_priorbox']])
+        net['predictions'] = Concatenate(name='predictions', axis=2)([net['mbox_loc'], net['mbox_conf'], net['mbox_priorbox']])
         # # for CNTK
         # net['predictions'] = Concatenate(name='predictions', axis=1)([net['mbox_loc'],
         #                         net['mbox_conf'],
@@ -227,8 +225,8 @@ def MSChromUNet(input_shape, depth=18, u_net=True, autoencoder=False, magnify=Fa
     return model
 
 if __name__ == '__main__':
-    input_shape = (1048576, )
-    mymodel = MSChromUNet(input_shape, 18, u_net=False, autoencoder=True, magnify=False, logtransform=False)
+    input_shape = (1024, )
+    mymodel = MSChromUNet(input_shape, 8, u_net=True, autoencoder=False, magnify=False, logtransform=False)
     # for L in mymodel.layers:
     #     if 'conv' in L.name:
     #         print(L.name)
@@ -246,7 +244,7 @@ if __name__ == '__main__':
     mymodel.load_weights('../wt.e014-0.41717_d8u_detector_allweights_batch32.hdf5', by_name=True)
     
     # mymodel.save('../my_tf_model.h5')
-    C.combine(mymodel.outputs).save('../unet_predictor_d8_wo_d123456out.dnn')
+    # C.combine(mymodel.outputs).save('../unet_predictor_d8_wo_d123456out.dnn')
     
     # load priors    
     with open('mschrom_unet_priors.pkl', mode='rb') as f:
@@ -260,9 +258,9 @@ if __name__ == '__main__':
     g = gen.generate(train=False, autoencoder=False)
     chrom, gt = next(g)
 
-    import winmltools
+    # import winmltools
     # model = winmltools.convert_keras(mymodel, 7, name='mymodel')
-    model = winmltools.convert_tensorflow(graph, 7)
+    # model = winmltools.convert_tensorflow(graph, 7)
 
     def schedule(epoch, decay=0.9):
         return base_lr * decay**(epoch)
@@ -283,6 +281,6 @@ if __name__ == '__main__':
     #                           workers=process_count, use_multiprocessing=True)
 
     predictions = mymodel.predict(chrom, batch_size=1, verbose=1)
-    # results = bbox_util.detection_out(predictions)
+    results = bbox_util.detection_out(predictions)
     results2 = np.array(results)
     print(results2.shape)
